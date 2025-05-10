@@ -12,9 +12,8 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
-import { findMatches } from "@/actions/matchmaking" // OpenAI version
-import { findMatchesWithGemini } from "@/actions/gemini-matchmaking" // Gemini version
-import { findMatchesFallback } from "@/actions/fallback-matching" // Fallback version
+import { findMatches } from "@/actions/matchmaking"
+import { findMatchesFallback } from "@/actions/fallback-matching"
 import type { UserProfile, MatchResult } from "@/types/matching"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -47,7 +46,6 @@ export function MatchmakingScreen({ onSelectMatch }) {
   const [languageMatchFilter, setLanguageMatchFilter] = useState(50)
   const [remoteOnly, setRemoteOnly] = useState(false)
   const [paidOnly, setPaidOnly] = useState(false)
-  const [aiModel, setAiModel] = useState<"ai" | "openai" | "fallback">("ai")
 
   useEffect(() => {
     const loadMatches = async () => {
@@ -55,27 +53,15 @@ export function MatchmakingScreen({ onSelectMatch }) {
         setLoading(true)
         setError(null)
 
-        let matchResults: MatchResult[] = []
-
-        // Try to use the selected AI model for matching
+        // Try to use the AI-powered matching first
         try {
-          if (aiModel === "ai") {
-            matchResults = await findMatchesWithGemini(sampleUserProfile)
-          } else if (aiModel === "openai") {
-            matchResults = await findMatches(sampleUserProfile)
-          } else {
-            matchResults = await findMatchesFallback(sampleUserProfile)
-          }
+          const matchResults = await findMatches(sampleUserProfile)
           setMatches(matchResults)
         } catch (aiError) {
-          console.error(`${aiModel} matching failed, using fallback:`, aiError)
+          console.error("AI matching failed, using fallback:", aiError)
           // If AI matching fails, use the fallback implementation
           const fallbackResults = await findMatchesFallback(sampleUserProfile)
           setMatches(fallbackResults)
-          // If we were trying to use an AI model and it failed, show a warning
-          if (aiModel !== "fallback") {
-            setError(`${aiModel.toUpperCase()} matching failed. Using pre-defined matches instead.`)
-          }
         }
       } catch (err) {
         console.error("Error loading matches:", err)
@@ -86,7 +72,7 @@ export function MatchmakingScreen({ onSelectMatch }) {
     }
 
     loadMatches()
-  }, [aiModel])
+  }, [])
 
   // Filter matches based on search query and filters
   const filteredMatches = matches.filter((match) => {
@@ -118,43 +104,10 @@ export function MatchmakingScreen({ onSelectMatch }) {
     return true
   })
 
-  const handleSwitchAI = (model: "ai" | "openai" | "fallback") => {
-    if (model !== aiModel) {
-      setAiModel(model)
-      setLoading(true)
-    }
-  }
-
   return (
     <div className="py-2">
       <h2 className="text-xl font-semibold mb-1">Find Your Match</h2>
       <p className="text-sm text-muted-foreground mb-4">AI-powered matchmaking based on your profile</p>
-
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Badge
-            variant={aiModel === "ai" ? "default" : "outline"}
-            className={aiModel === "ai" ? "bg-purple-500 hover:bg-purple-600 cursor-pointer" : "cursor-pointer"}
-            onClick={() => handleSwitchAI("ai")}
-          >
-            AI
-          </Badge>
-          <Badge
-            variant={aiModel === "openai" ? "default" : "outline"}
-            className={aiModel === "openai" ? "bg-blue-500 hover:bg-blue-600 cursor-pointer" : "cursor-pointer"}
-            onClick={() => handleSwitchAI("openai")}
-          >
-            OpenAI
-          </Badge>
-          <Badge
-            variant={aiModel === "fallback" ? "default" : "outline"}
-            className={aiModel === "fallback" ? "bg-green-500 hover:bg-green-600 cursor-pointer" : "cursor-pointer"}
-            onClick={() => handleSwitchAI("fallback")}
-          >
-            Fallback Matches
-          </Badge>
-        </div>
-      </div>
 
       <div className="flex items-center gap-2 mb-4">
         <div className="relative flex-1">
@@ -237,8 +190,7 @@ export function MatchmakingScreen({ onSelectMatch }) {
         <TabsContent value="recommended" className="space-y-4">
           <div className="text-sm text-muted-foreground mb-2">
             <Star className="h-4 w-4 inline-block mr-1 text-yellow-500" />
-            Top matches based on your profile{" "}
-            {aiModel !== "fallback" && `(powered by ${aiModel === "ai" ? "AI" : "OpenAI"})`}
+            Top matches based on your profile
           </div>
 
           {loading ? (

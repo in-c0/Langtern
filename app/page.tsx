@@ -9,7 +9,6 @@ import { WelcomeScreen } from "@/components/welcome-screen"
 import { ProfileCreation } from "@/components/profile-creation"
 import { MatchmakingScreen } from "@/components/matchmaking-screen"
 import { ChatScreen } from "@/components/chat-screen"
-import { GeminiChatScreen } from "@/components/gemini-chat-screen"
 import { AgreementScreen } from "@/components/agreement-screen"
 import { AIMatchmakingExplainer } from "@/components/ai-matchmaking-explainer"
 import { TranslationIndicator } from "@/components/translation-indicator"
@@ -17,7 +16,6 @@ import { MatchListings } from "@/components/match-listings"
 
 export default function LangternApp() {
   const [currentScreen, setCurrentScreen] = useState("welcome")
-  const [useAI, setUseAI] = useState(true)
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -33,11 +31,7 @@ export default function LangternApp() {
           </>
         )
       case "chat":
-        return useAI ? (
-          <GeminiChatScreen onProceed={() => setCurrentScreen("agreement")} />
-        ) : (
-          <ChatScreen onProceed={() => setCurrentScreen("agreement")} />
-        )
+        return <ChatScreen onProceed={() => setCurrentScreen("agreement")} />
       case "agreement":
         return <AgreementScreen onComplete={() => setCurrentScreen("dashboard")} />
       case "dashboard":
@@ -130,7 +124,7 @@ export default function LangternApp() {
             <FeatureCard
               icon={<MessageSquare className="h-5 w-5 text-purple-500" />}
               title="Real-time Translation"
-              description="Chat with Gemini AI translation to bridge language gaps"
+              description="Chat with AI translation to bridge language gaps"
             />
             <FeatureCard
               icon={<Briefcase className="h-5 w-5 text-green-500" />}

@@ -142,22 +142,13 @@ export function TranslationSettingsDialog({ settings, onUpdateSettings }: Transl
   )
 }
 
-export function TranslationToggle({
-  enabled,
-  onToggle,
-  disabled = false,
-}: {
-  enabled: boolean
-  onToggle: () => void
-  disabled?: boolean
-}) {
+export function TranslationToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
     <Button
       variant="ghost"
       size="sm"
-      className={`h-8 gap-1.5 ${enabled ? "text-blue-500" : "text-muted-foreground"} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      className={`h-8 gap-1.5 ${enabled ? "text-blue-500" : "text-muted-foreground"}`}
       onClick={onToggle}
-      disabled={disabled}
     >
       <Languages className="h-4 w-4" />
       {enabled ? <span className="text-xs">Translation On</span> : <span className="text-xs">Translation Off</span>}
@@ -165,33 +156,16 @@ export function TranslationToggle({
   )
 }
 
-export function TranslationStatus({
-  active,
-  provider = "ai",
-}: {
-  active: boolean
-  provider?: "ai" | "openai" | "none"
-}) {
-  if (provider === "none") {
-    return (
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        <Languages className="h-3 w-3" />
-        <span>Translation disabled</span>
-      </div>
-    )
-  }
-
+export function TranslationStatus({ active }: { active: boolean }) {
   return active ? (
-    <div
-      className={`flex items-center gap-1 text-xs ${provider === "ai" ? "text-purple-500" : "text-blue-500"} animate-pulse`}
-    >
+    <div className="flex items-center gap-1 text-xs text-blue-500 animate-pulse">
       <Languages className="h-3 w-3" />
-      <span>Translating with {provider === "ai" ? "AI" : "OpenAI"}...</span>
+      <span>Translating...</span>
     </div>
   ) : (
     <div className="flex items-center gap-1 text-xs text-green-500">
       <Check className="h-3 w-3" />
-      <span>{provider === "ai" ? "AI" : "OpenAI"} translation ready</span>
+      <span>Translation ready</span>
     </div>
   )
 }
