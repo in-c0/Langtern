@@ -1,0 +1,11 @@
+- User 
+	ID, firstName, lastName, email, password, profile (JSON)
+
+- Company
+	ID, name, location
+
+- Job
+	- ID, companyID, location, jobName, jobInfo (JSON)
+
+
+
