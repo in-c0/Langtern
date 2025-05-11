@@ -1,11 +1,11 @@
-# APAC Solution Challenge 2025 Submission - Langtern
+# APAC Solution Challenge 2025 Submission - "Langtern" by Ava & Dan
 
+![langtern logo](https://github.com/user-attachments/assets/d52ba091-fd08-453b-98d8-c80feac1dd52)
 
 Latest Deployement: [https://langtern.vercel.app/](https://langtern.vercel.app/)
 
-![Langtern Logo](https://github.com/user-attachments/assets/aa02b1dc-91bc-43d7-bcd0-910839d27646)
 
-Langtern is a web and mobile app/platform connecting students and businesses for internships opportunities with an additional focus on language exchange. 
+**Langtern** is a web and mobile app/platform connecting students and businesses for internships opportunities with an additional focus on language exchange. 
 By combining AI-powered matchmaking with real-time translation capabilities, Langtern breaks down language barriers and facilitates meaningful cross-cultural professional experiences.
 
 ## 🌟 Features
