@@ -1,12 +1,11 @@
 # APAC Solution Challenge 2025 Submission - "Langtern" by Ava & Dan
-
 ![langtern logo](https://github.com/user-attachments/assets/d52ba091-fd08-453b-98d8-c80feac1dd52)
 
-Latest Deployement: [https://langtern.vercel.app/](https://langtern.vercel.app/)
-
-
-**Langtern** is a web and mobile app/platform connecting students and businesses for internships opportunities with an additional focus on language exchange. 
+**Langtern** is a web and mobile app/platform connecting students and businesses for internship opportunities with an additional focus on language exchange. 
 By combining AI-powered matchmaking with real-time translation capabilities, Langtern breaks down language barriers and facilitates meaningful cross-cultural professional experiences.
+
+Latest Deployment: [https://langtern.vercel.app/](https://langtern.vercel.app/)
+
 
 ## 🌟 Features
 
@@ -42,34 +41,35 @@ By combining AI-powered matchmaking with real-time translation capabilities, Lan
 
 ### Installation
 
-1. Clone the repository:
-\`\`\`bash
+```bash
 git clone https://github.com/yourusername/langtern.git
 cd langtern
-\`\`\`
+```
 
-2. Install dependencies:
-\`\`\`bash
+```bash
 npm install
 # or
 yarn install
-\`\`\`
+```
 
-3. Set up environment variables:
-Create a `.env.local` file in the root directory with the following variables:
-\`\`\`
+### Environment Variables
+
+Create a `.env.local` file in the root directory with the following:
+
+```
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 OPENAI_API_KEY=your_openai_api_key
-\`\`\`
+```
 
-4. Run the development server:
-\`\`\`bash
+### Run the Development Server
+
+```bash
 npm run dev
 # or
 yarn dev
-\`\`\`
+```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 📱 Usage
 
@@ -81,20 +81,20 @@ yarn dev
 5. Set your availability and preferences
 
 ### Finding Matches
-1. Browse AI-recommended matches based on your profile
-2. Filter matches by criteria like location, language, or work arrangement
-3. View detailed match information and compatibility reasons
+1. Browse AI-recommended matches
+2. Filter by criteria like location, language, or work arrangement
+3. View detailed compatibility information
 
 ### Communication
-1. Chat with potential matches using the built-in messaging system
-2. Enable real-time translation for seamless cross-language communication
-3. Customize translation settings based on your preferences
+1. Use the built-in messaging system
+2. Enable real-time translation
+3. Customize translation settings
 
 ### Creating Arrangements
-1. Select an arrangement template that fits your needs
-2. Customize the template with specific details
-3. Preview and confirm the arrangement
-4. Access and manage your arrangements from the dashboard
+1. Choose a template
+2. Customize with specific details
+3. Preview and confirm
+4. Manage arrangements from the dashboard
 
 ## 🛠️ Technologies Used
 
@@ -107,49 +107,50 @@ yarn dev
 
 ## 📂 Project Structure
 
-\`\`\`
+```
 langtern/
-├── app/                  # Next.js app directory
-│   ├── layout.tsx        # Root layout
-│   ├── page.tsx          # Main application component
-│   └── globals.css       # Global styles
-├── components/           # React components
-│   ├── ui/               # UI components (shadcn)
-│   ├── template-*.tsx    # Template-related components
-│   ├── match-*.tsx       # Matching-related components
-│   └── ...               # Other components
-├── actions/              # Server actions
-│   ├── matchmaking.ts    # AI matchmaking functionality
-│   └── translation.ts    # Translation functionality
-├── data/                 # Static data
-│   └── agreement-templates.ts  # Template definitions
-├── hooks/                # Custom React hooks
-├── lib/                  # Utility functions
-├── types/                # TypeScript type definitions
-└── public/               # Static assets
-\`\`\`
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── components/
+│   ├── ui/
+│   ├── template-*.tsx
+│   ├── match-*.tsx
+│   └── ...
+├── actions/
+│   ├── matchmaking.ts
+│   └── translation.ts
+├── data/
+│   └── agreement-templates.ts
+├── hooks/
+├── lib/
+├── types/
+└── public/
+```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome!
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+1. Fork the repo
+2. Create a branch (`git checkout -b feature/amazing-feature`)
+3. Commit (`git commit -m 'Add amazing feature'`)
+4. Push (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgements
 
-- OpenAI for providing the AI capabilities
-- Vercel for hosting and deployment
-- shadcn/ui for the beautiful component library
-- All contributors who have helped shape this project
+- OpenAI for AI capabilities
+- Vercel for hosting
+- shadcn/ui for components
+- All contributors
 
 ---
 
 Built with ❤️ by the Langtern Team (Ava & Dan)
+
