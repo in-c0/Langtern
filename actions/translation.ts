@@ -20,14 +20,15 @@ export async function translateText(
       return { translatedText: text, success: true }
     }
 
-    // Map the target language to the expected format (e.g., "English" -> "en")
-    const targetLang = mapLanguageToCode(targetLanguage)
+    console.log("Server action: translating text", { text, targetLanguage })
 
-    // Call the translation API
+    // Call the translation API with the full language name
     const result = await apiTranslateText({
       text,
-      targetLang,
+      targetLang: targetLanguage, // Use the full language name directly
     })
+
+    console.log("Translation API result:", result)
 
     return {
       translatedText: result.translatedText || text,
@@ -52,30 +53,9 @@ export async function detectLanguage(text: string): Promise<string> {
     }
 
     // For now, we'll return a default value since the API doesn't have a dedicated language detection endpoint
-    // In a real implementation, you might want to call the translation API with a special flag
-    // or implement client-side detection
     return "auto-detected"
   } catch (error) {
     console.error("Language detection error:", error)
     return "unknown"
   }
-}
-
-// Helper function to map full language names to language codes
-function mapLanguageToCode(language: string): string {
-  const languageMap: Record<string, string> = {
-    English: "en",
-    Japanese: "ja",
-    Spanish: "es",
-    French: "fr",
-    German: "de",
-    Chinese: "zh",
-    Korean: "ko",
-    Portuguese: "pt",
-    Italian: "it",
-    Russian: "ru",
-    // Add more mappings as needed
-  }
-
-  return languageMap[language] || "en" // Default to English if not found
 }

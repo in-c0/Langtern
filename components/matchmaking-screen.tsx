@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { findMatches } from "@/actions/matchmaking"
 import { findMatchesFallback } from "@/actions/fallback-matching"
+import { ManualJobSearch } from "@/components/manual-job-search"
 import type { UserProfile, MatchResult } from "@/types/matching"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -109,85 +110,85 @@ export function MatchmakingScreen({ onSelectMatch }) {
       <h2 className="text-xl font-semibold mb-1">Find Your Match</h2>
       <p className="text-sm text-muted-foreground mb-4">AI-powered matchmaking based on your profile</p>
 
-      <div className="flex items-center gap-2 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search opportunities..."
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setShowFilters(!showFilters)}
-          className={showFilters ? "bg-blue-500/10 text-blue-500 border-blue-500/30" : ""}
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {showFilters && (
-        <motion.div
-          className="mb-4 p-3 border border-border/40 rounded-lg bg-card/50"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <h3 className="text-sm font-medium mb-3">Filters</h3>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Match Percentage</span>
-                <span className="text-muted-foreground">{languageMatchFilter}%+</span>
-              </div>
-              <Slider
-                defaultValue={[languageMatchFilter]}
-                min={50}
-                max={100}
-                step={5}
-                onValueChange={(value) => setLanguageMatchFilter(value[0])}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center space-x-2">
-                <Switch id="remote" checked={remoteOnly} onCheckedChange={setRemoteOnly} />
-                <Label htmlFor="remote" className="text-sm">
-                  Remote Only
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch id="paid" checked={paidOnly} onCheckedChange={setPaidOnly} />
-                <Label htmlFor="paid" className="text-sm">
-                  Paid Only
-                </Label>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
       <Tabs defaultValue="recommended" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="recommended">Recommended</TabsTrigger>
-          <TabsTrigger value="recent">Recent</TabsTrigger>
+          <TabsTrigger value="search">Manual Search</TabsTrigger>
           <TabsTrigger value="saved">Saved</TabsTrigger>
         </TabsList>
 
         <TabsContent value="recommended" className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search opportunities..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? "bg-blue-500/10 text-blue-500 border-blue-500/30" : ""}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {showFilters && (
+            <motion.div
+              className="mb-4 p-3 border border-border/40 rounded-lg bg-card/50"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 className="text-sm font-medium mb-3">Filters</h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Match Percentage</span>
+                    <span className="text-muted-foreground">{languageMatchFilter}%+</span>
+                  </div>
+                  <Slider
+                    defaultValue={[languageMatchFilter]}
+                    min={50}
+                    max={100}
+                    step={5}
+                    onValueChange={(value) => setLanguageMatchFilter(value[0])}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center space-x-2">
+                    <Switch id="remote" checked={remoteOnly} onCheckedChange={setRemoteOnly} />
+                    <Label htmlFor="remote" className="text-sm">
+                      Remote Only
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch id="paid" checked={paidOnly} onCheckedChange={setPaidOnly} />
+                    <Label htmlFor="paid" className="text-sm">
+                      Paid Only
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="text-sm text-muted-foreground mb-2">
             <Star className="h-4 w-4 inline-block mr-1 text-yellow-500" />
             Top matches based on your profile
@@ -230,42 +231,8 @@ export function MatchmakingScreen({ onSelectMatch }) {
           )}
         </TabsContent>
 
-        <TabsContent value="recent" className="space-y-4">
-          <div className="text-sm text-muted-foreground mb-2">Recently added opportunities</div>
-
-          {loading ? (
-            // Loading skeletons
-            Array(2)
-              .fill(0)
-              .map((_, i) => (
-                <Card key={i} className="p-4 border border-border/40">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-40" />
-                      <Skeleton className="h-4 w-32" />
-                    </div>
-                    <Skeleton className="h-6 w-20" />
-                  </div>
-                  <Skeleton className="h-4 w-32 mb-3" />
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                  <div className="flex justify-end">
-                    <Skeleton className="h-8 w-28" />
-                  </div>
-                </Card>
-              ))
-          ) : (
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-3">
-                <Clock className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <p className="text-muted-foreground">No recent opportunities</p>
-              <p className="text-xs text-muted-foreground mt-1">Check back soon for new opportunities</p>
-            </div>
-          )}
+        <TabsContent value="search">
+          <ManualJobSearch onSelectJob={onSelectMatch} />
         </TabsContent>
 
         <TabsContent value="saved" className="space-y-4">

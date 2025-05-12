@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { translateText, detectLanguage } from "@/actions/translation"
+import { translateText } from "@/actions/translation"
 
 export type TranslationSettings = {
   enabled: boolean
@@ -38,15 +38,11 @@ export function useTranslation(initialSettings?: Partial<TranslationSettings>) {
       setIsTranslating(true)
       try {
         const target = targetLanguage || settings.partnerLanguage
-        let source = settings.autoDetect ? undefined : settings.userLanguage
 
-        // If auto-detect is enabled, try to detect the language
-        if (settings.autoDetect) {
-          const detectedLang = await detectLanguage(text)
-          source = detectedLang
-        }
+        console.log("Calling translation API with:", { text, targetLanguage: target })
+        const result = await translateText(text, target)
+        console.log("Translation result:", result)
 
-        const result = await translateText(text, target, source)
         return result
       } catch (error) {
         console.error("Translation error:", error)

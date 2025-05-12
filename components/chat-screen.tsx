@@ -101,7 +101,9 @@ export function ChatScreen({ onProceed }) {
     try {
       // Translate the message if translation is enabled
       if (translationSettings.enabled) {
+        console.log("Chat: Translating message", newMessage, "to", translationSettings.partnerLanguage)
         const result = await translateMessage(newMessage, translationSettings.partnerLanguage)
+        console.log("Chat: Translation result", result)
 
         // Update the message with translation
         setMessages((prev) =>
@@ -135,7 +137,9 @@ export function ChatScreen({ onProceed }) {
 
           // Translate the partner's message
           if (translationSettings.enabled) {
+            console.log("Chat: Translating partner message", replyText, "to", translationSettings.userLanguage)
             const result = await translateMessage(replyText, translationSettings.userLanguage)
+            console.log("Chat: Partner translation result", result)
 
             // Update the message with translation
             setMessages((prev) =>
