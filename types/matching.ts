@@ -31,6 +31,3 @@ export interface MatchResult {
   matchPercentage: number
   matchReasons: string[]
 }
-
-export type Match = MatchResult
-export type Profile = UserProfile

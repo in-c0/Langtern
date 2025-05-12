@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { Globe, Briefcase, MessageSquare, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,19 +13,9 @@ import { AgreementScreen } from "@/components/agreement-screen"
 import { AIMatchmakingExplainer } from "@/components/ai-matchmaking-explainer"
 import { TranslationIndicator } from "@/components/translation-indicator"
 import { MatchListings } from "@/components/match-listings"
-import { useAuth } from "@/contexts/AuthContext"
-import { UserProfileMenu } from "@/components/user-profile-menu"
 
 export default function LangternApp() {
   const [currentScreen, setCurrentScreen] = useState("welcome")
-  const { user, loading } = useAuth()
-
-  // Redirect to welcome if not logged in
-  useEffect(() => {
-    if (!loading && !user && currentScreen !== "welcome") {
-      setCurrentScreen("welcome")
-    }
-  }, [user, loading, currentScreen])
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -62,7 +52,7 @@ export default function LangternApp() {
               Langtern
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             {currentScreen !== "welcome" && (
               <Button
                 variant="ghost"
@@ -73,7 +63,6 @@ export default function LangternApp() {
                 Home
               </Button>
             )}
-            <UserProfileMenu />
           </div>
         </div>
       </div>
