@@ -100,11 +100,6 @@ app.post('/searchJob', async (req, res) => {
 // API routes under /api prefix
 //app.use("/api/auth", authRoutes)
 
-// Basic route
-app.get("/", (req, res) => {
-  res.send("API is running...")
-})
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode
