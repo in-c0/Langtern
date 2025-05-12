@@ -27,8 +27,6 @@ app.use(
 // Direct routes at root level
 app.post("/login", loginUser)
 app.post("/register", registerUser)
-app.get("/search", searchUsers)
-
 
 app.post('/translate', async (req, res) => {
 
