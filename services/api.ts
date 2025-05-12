@@ -44,13 +44,13 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 // Auth API
 export const authApi = {
   login: (email: string, password: string) =>
-    apiRequest("/api/auth/login", {
+    apiRequest("/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
 
   register: (name: string, email: string, password: string) =>
-    apiRequest("/api/auth/register", {
+    apiRequest("/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
     }),
@@ -144,21 +144,26 @@ export const referenceApi = {
 
 // AI Services API
 export const aiApi = {
-  translate: (text: string, targetLanguage: string, sourceLanguage?: string) =>
+  translate: (text: string, targetLang: string) =>
     apiRequest("/translate", {
       method: "POST",
       body: JSON.stringify({
         text,
-        targetLanguage,
-        ...(sourceLanguage ? { sourceLanguage } : {}),
+        targetLang,
       }),
     }),
 
-  searchJobs: (query: string) =>
+  searchJobs: (searchValue: string, skills?: string[], languages?: string[]) =>
     apiRequest("/searchJob", {
       method: "POST",
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({
+        searchValue,
+        skills: skills || [],
+        languages: languages || [],
+      }),
     }),
+
+  testConnection: () => apiRequest("/test"),
 }
 
 export default {
