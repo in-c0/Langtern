@@ -52,6 +52,10 @@ app.post('/translate', async (req, res) => {
   }
 });
 
+app.get('/test', async (req, res) => {
+  return res.status(200).json({ test: 'TEST' });
+});
+
 
 app.post('/searchJob', async (req, res) => {
 
@@ -91,6 +95,8 @@ app.post('/searchJob', async (req, res) => {
       res.status(500).json({ error: 'AI request failed' });
     }
 });
+
+
 
 
 // API routes under /api prefix
