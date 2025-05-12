@@ -3,14 +3,15 @@ import dotenv from "dotenv"
 import cors from "cors"
 import connectDB from "./config/db.js"
 import authRoutes from "./routes/authRoutes.js"
-import { loginUser, registerUser } from "./controllers/authController.js"
-import { searchUsers } from "./controllers/searchController.js"
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { loginUser, registerUser } from "./controllers/userController.js"
+import { GoogleGenAI } from '@google/genai';
 
 // Load environment variables
 dotenv.config()
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 // Connect to database
+
+
 
 const app = express()
 
@@ -28,112 +29,69 @@ app.post("/login", loginUser)
 app.post("/register", registerUser)
 app.get("/search", searchUsers)
 
-app.post("/translate", async (req, res) => {
-  const { text, targetLang } = req.body
 
-  if (!text || !targetLang) {
-    return res.status(400).json({ error: "Missing text or target language" })
+app.post('/translate', async (req, res) => {
+
+  const { text, targetLang } = req.body;
+  const prompt = `Please translate the following text into ${targetLang}, only return the translated text and nothing else: ${text}`
+  if (!prompt) {
+    return res.status(400).json({ error: 'Missing prompt in request body' });
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
+    });
 
-    const prompt = `
-    Translate the following text to ${targetLang}. 
-    Only return the translated text without any explanations or additional text.
-
-    Text to translate:
-    "${text}"
-    `
-
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const translatedText = response.text().trim()
-
-    res.json({
-      originalText: text,
-      translatedText,
-      targetLanguage: targetLang,
-    })
+    // Adjust response based on the actual shape of the returned data
+    res.json({ response: response.text });
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "Translation failed" })
+    console.error(error);
+    res.status(500).json({ error: 'AI request failed' });
   }
-})
+});
 
-app.post("/searchJob", async (req, res) => {
+
+app.post('/searchJob', async (req, res) => {
+
   const supabase = await connectDB()
-  const { searchValue, skills, languages } = req.body
-
-  if (!searchValue && (!skills || !languages)) {
-    return res.status(400).json({ error: "Missing search criteria" })
+  const { searchValue, skills, languages } = req.body;
+  if (!searchValue) {
+    return res.status(400).json({ error: 'Missing prompt in request body' });
   }
 
-  try {
-    // Get jobs from database
-    let query = supabase.from("jobs").select(`
-      *,
-      companies(*),
-      job_languages(*, languages(*)),
-      job_skills(*, skills(*))
-    `)
+  const { data, error } = await supabase
+      .from('jobs')  // Replace 'jobs' with your table name
+      .select('*')
+      .or(`country.eq.${searchValue},city.eq.${searchValue}`)  // Matching country or city
 
-    // Apply filters if provided
-    if (searchValue) {
-      query = query.or(`country.ilike.%${searchValue}%,city.ilike.%${searchValue}%,title.ilike.%${searchValue}%`)
-    }
+    //res.json({ response: data });
+    const dataString = JSON.stringify(data);
+    const prompt = `I need your help finding the best possible job options from the options below. Please find jobs that match some if not all the info set by the user. Only return the jobs as a JSON Object, do not return anything else. The user information is as follows:
 
-    const { data, error } = await query
+    Skills: ${skills}
 
-    if (error) {
-      throw error
-    }
+    Languages: ${languages}
 
-    // If no skills or languages provided, return all jobs
-    if (!skills && !languages) {
-      return res.json({ response: data })
-    }
-
-    // Use Gemini to find the best matches
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
-
-    const prompt = `
-    I need your help finding the best possible job options from the options below. 
-    Please find jobs that match some if not all the info set by the user. 
-    Only return the jobs as a JSON Array, do not return anything else.
-
-    User information:
-    Skills: ${skills || "Not specified"}
-    Languages: ${languages || "Not specified"}
 
     Here are all the jobs, they are in JSON format:
-    ${JSON.stringify(data)}
-    `
-
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const aiResponse = response.text()
-
-    // Extract JSON from the response
-    const jsonMatch = aiResponse.match(/\[[\s\S]*\]/)?.[0] || "[]"
-    let matchedJobs
-
+    ${dataString}
+      `
     try {
-      matchedJobs = JSON.parse(jsonMatch)
-    } catch (e) {
-      console.error("Failed to parse AI response:", e)
-      matchedJobs = data // Fallback to all jobs if parsing fails
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: prompt,
+      });
+      var cleanData = response.text;
+      cleanData = cleanData.replace("json","").replaceAll("\n"," ").replaceAll("```"," ")
+      res.json({ response: JSON.parse(cleanData), prompt:prompt, data:data });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'AI request failed' });
     }
+});
 
-    res.json({
-      response: matchedJobs,
-      originalJobs: data,
-    })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "Job search failed" })
-  }
-})
 
 // API routes under /api prefix
 app.use("/api/auth", authRoutes)
