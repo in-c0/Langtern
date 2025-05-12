@@ -2,7 +2,7 @@ import express from "express"
 import dotenv from "dotenv"
 import cors from "cors"
 import connectDB from "./config/db.js"
-import authRoutes from "./routes/authRoutes.js"
+//import authRoutes from "./routes/authRoutes.js"
 import { loginUser, registerUser } from "./controllers/userController.js"
 import { GoogleGenAI } from '@google/genai';
 
@@ -100,7 +100,7 @@ app.post('/searchJob', async (req, res) => {
 
 
 // API routes under /api prefix
-app.use("/api/auth", authRoutes)
+//app.use("/api/auth", authRoutes)
 
 // Basic route
 app.get("/", (req, res) => {
