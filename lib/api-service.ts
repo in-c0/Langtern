@@ -35,6 +35,7 @@ export interface JobResult {
   role?: string
   matchPercentage?: number
   matchReasons?: string[]
+  matching_score?: number // Add the matching_score field
 }
 
 export async function searchJobs(params: SearchJobParams): Promise<JobResult[]> {

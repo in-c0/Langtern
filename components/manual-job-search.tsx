@@ -132,7 +132,34 @@ export function ManualJobSearch({ onSelectJob }) {
 
       // Transform API results to match our MatchResult type
       const formattedResults: MatchResult[] = results.map((job: JobResult) => {
-        // Calculate a match percentage based on how many skills and languages match
+        // Use the matching_score from the API if available
+        let matchPercentage = job.matching_score !== undefined ? Math.round(job.matching_score * 100) : 0
+
+        // If matching_score is not available, calculate it based on skills and languages
+        if (matchPercentage === 0) {
+          const skillsMatch = job.skills.filter((skill) =>
+            selectedSkills.some((s) => skill.toLowerCase().includes(s.toLowerCase())),
+          ).length
+
+          const languagesMatch = job.languages.filter((lang) =>
+            selectedLanguages.some((l) => lang.toLowerCase().includes(l.toLowerCase())),
+          ).length
+
+          const totalSkills = Math.max(job.skills.length, selectedSkills.length)
+          const totalLanguages = Math.max(job.languages.length, selectedLanguages.length)
+
+          matchPercentage = Math.floor((skillsMatch / totalSkills) * 50 + (languagesMatch / totalLanguages) * 50)
+        }
+
+        // Ensure matchPercentage is between 0 and 100
+        matchPercentage = Math.max(0, Math.min(100, matchPercentage))
+
+        // Generate match reasons
+        const matchReasons = []
+        if (job.matching_score !== undefined) {
+          matchReasons.push(`Matching score: ${(job.matching_score * 100).toFixed(1)}%`)
+        }
+
         const skillsMatch = job.skills.filter((skill) =>
           selectedSkills.some((s) => skill.toLowerCase().includes(s.toLowerCase())),
         ).length
@@ -141,13 +168,6 @@ export function ManualJobSearch({ onSelectJob }) {
           selectedLanguages.some((l) => lang.toLowerCase().includes(l.toLowerCase())),
         ).length
 
-        const totalSkills = Math.max(job.skills.length, selectedSkills.length)
-        const totalLanguages = Math.max(job.languages.length, selectedLanguages.length)
-
-        const matchPercentage = Math.floor((skillsMatch / totalSkills) * 50 + (languagesMatch / totalLanguages) * 50)
-
-        // Generate match reasons
-        const matchReasons = []
         if (skillsMatch > 0) {
           matchReasons.push(`Matches ${skillsMatch} of your skills`)
         }
@@ -169,6 +189,7 @@ export function ManualJobSearch({ onSelectJob }) {
           matchPercentage: job.matchPercentage || matchPercentage,
           matchReasons: job.matchReasons || matchReasons,
           bio: job.bio || "",
+          matching_score: job.matching_score, // Store the raw matching score
         }
       })
 
@@ -413,6 +434,13 @@ function JobCard({ job, onSelect }) {
       </div>
 
       {job.bio && <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{job.bio}</p>}
+
+      {/* Display matching score if available */}
+      {job.matching_score !== undefined && (
+        <div className="text-xs text-muted-foreground mb-3">
+          <span className="font-medium">Matching Score:</span> {(job.matching_score * 100).toFixed(1)}%
+        </div>
+      )}
 
       <div className="flex justify-end">
         <Button size="sm" variant="ghost" className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10">
