@@ -14,25 +14,31 @@ import {
   type RegisterCredentials,
 } from "@/lib/auth-service"
 
+// Extended AuthResponse to include userType
+interface ExtendedAuthResponse extends AuthResponse {
+  userType?: "student" | "business"
+}
+
 type AuthContextType = {
-  user: AuthResponse | null
+  user: ExtendedAuthResponse | null
   isLoading: boolean
   signIn: (credentials: LoginCredentials) => Promise<{ error: string | null }>
-  signUp: (credentials: RegisterCredentials) => Promise<{ error: string | null; user: AuthResponse | null }>
+  signUp: (credentials: RegisterCredentials) => Promise<{ error: string | null; user: ExtendedAuthResponse | null }>
   signOut: () => void
+  updateUserType: (type: "student" | "business") => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthResponse | null>(null)
+  const [user, setUser] = useState<ExtendedAuthResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Load auth data from localStorage on initial render
   useEffect(() => {
     const storedAuth = getStoredAuth()
     if (storedAuth) {
-      setUser(storedAuth)
+      setUser(storedAuth as ExtendedAuthResponse)
     }
     setIsLoading(false)
   }, [])
@@ -42,8 +48,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await loginUser(credentials)
 
     if (data) {
-      setUser(data)
-      storeAuth(data)
+      // Cast to ExtendedAuthResponse and set default userType if not present
+      const extendedData = data as ExtendedAuthResponse
+      if (!extendedData.userType) {
+        extendedData.userType = "student" // Default to student
+      }
+      setUser(extendedData)
+      storeAuth(extendedData)
     }
 
     setIsLoading(false)
@@ -55,17 +66,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await registerUser(credentials)
 
     if (data) {
-      setUser(data)
-      storeAuth(data)
+      // Cast to ExtendedAuthResponse and set default userType
+      const extendedData = data as ExtendedAuthResponse
+      extendedData.userType = "student" // Default new users to student
+      setUser(extendedData)
+      storeAuth(extendedData)
     }
 
     setIsLoading(false)
-    return { error, user: data }
+    return { error, user: data as ExtendedAuthResponse | null }
   }
 
   const signOut = () => {
     setUser(null)
     clearAuth()
+  }
+
+  // Add function to update user type
+  const updateUserType = (type: "student" | "business") => {
+    if (user) {
+      const updatedUser = { ...user, userType: type }
+      setUser(updatedUser)
+      storeAuth(updatedUser)
+    }
   }
 
   return (
@@ -76,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signUp,
         signOut,
+        updateUserType,
       }}
     >
       {children}

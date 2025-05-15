@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,10 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { signIn, signUp } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get the redirect URL from query params if it exists
+  const redirectTo = searchParams.get("redirectTo") || "/"
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +37,8 @@ export function LoginForm() {
       if (error) {
         setError(error)
       } else {
-        router.push("/profile")
+        // Redirect to the specified URL or homepage
+        router.push(redirectTo)
       }
     } catch (err: any) {
       setError(err.message || "An error occurred during sign in")
@@ -58,7 +63,8 @@ export function LoginForm() {
       if (error) {
         setError(error)
       } else {
-        router.push("/profile")
+        // Redirect to the specified URL or homepage
+        router.push(redirectTo)
       }
     } catch (err: any) {
       setError(err.message || "An error occurred during sign up")

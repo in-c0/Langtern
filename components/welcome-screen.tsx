@@ -1,10 +1,13 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Globe, Languages, Briefcase, ChevronRight, User } from "lucide-react"
+import { Globe, Languages, Briefcase, ChevronRight, User, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/auth-context"
 
 export function WelcomeScreen({ onContinue, onGuestContinue }) {
+  const { user } = useAuth()
+
   return (
     <div className="flex flex-col items-center py-6">
       <motion.div
@@ -39,42 +42,66 @@ export function WelcomeScreen({ onContinue, onGuestContinue }) {
         Connect with global opportunities for internships and language exchange
       </motion.p>
 
-      <motion.div
-        className="space-y-4 w-full max-w-xs mb-8"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <UserTypeButton
-          icon={<Languages className="h-5 w-5" />}
-          title="I'm a Student"
-          description="Looking for internships & language practice"
-          onClick={() => onContinue("student")}
-        />
-
-        <UserTypeButton
-          icon={<Briefcase className="h-5 w-5" />}
-          title="I'm a Business"
-          description="Seeking interns & language exchange"
-          onClick={() => onContinue("business")}
-        />
-      </motion.div>
-
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onGuestContinue}
-          className="flex items-center gap-1 text-muted-foreground"
+      {user ? (
+        // For logged-in users, show a direct "Find Matches" button
+        <motion.div
+          className="space-y-4 w-full max-w-xs mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <User className="h-4 w-4" />
-          Explore as Guest
-        </Button>
-      </motion.div>
+          <Button
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center gap-2 py-6"
+            onClick={() => onContinue(user.userType || "student")}
+          >
+            <Search className="h-5 w-5" />
+            Find Matches
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            Welcome back, {user.firstName || "User"}! Ready to find new opportunities?
+          </p>
+        </motion.div>
+      ) : (
+        // For non-logged in users, show the original options
+        <motion.div
+          className="space-y-4 w-full max-w-xs mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <UserTypeButton
+            icon={<Languages className="h-5 w-5" />}
+            title="I'm a Student"
+            description="Looking for internships & language practice"
+            onClick={() => onContinue("student")}
+          />
+
+          <UserTypeButton
+            icon={<Briefcase className="h-5 w-5" />}
+            title="I'm a Business"
+            description="Seeking interns & language exchange"
+            onClick={() => onContinue("business")}
+          />
+        </motion.div>
+      )}
+
+      {!user && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onGuestContinue}
+            className="flex items-center gap-1 text-muted-foreground"
+          >
+            <User className="h-4 w-4" />
+            Explore as Guest
+          </Button>
+        </motion.div>
+      )}
     </div>
   )
 }

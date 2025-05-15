@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
-import { LogOut, User, Settings, Bell, Briefcase, MessageSquare } from "lucide-react"
+import { LogOut, User, Settings, Bell, Briefcase, MessageSquare, Search, Home } from "lucide-react"
 
 export function UserProfile() {
   const { user, signOut } = useAuth()
@@ -13,6 +13,10 @@ export function UserProfile() {
 
   const handleSignOut = () => {
     signOut()
+    router.push("/")
+  }
+
+  const handleGoToHome = () => {
     router.push("/")
   }
 
@@ -45,6 +49,12 @@ export function UserProfile() {
         </Avatar>
         <CardTitle className="text-2xl">{`${user.firstName} ${user.lastName}`}</CardTitle>
         <CardDescription>{user.email}</CardDescription>
+
+        {/* Add Find Matches button */}
+        <Button onClick={handleGoToHome} className="mt-4 bg-green-500 hover:bg-green-600 text-white">
+          <Search className="h-4 w-4 mr-2" />
+          Find Matches
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
@@ -81,6 +91,13 @@ export function UserProfile() {
             title="Account Settings"
             description="Manage your account preferences"
             onClick={() => router.push("/profile/settings")}
+          />
+
+          <ProfileMenuItem
+            icon={<Home className="h-5 w-5 text-blue-500" />}
+            title="Return to Home"
+            description="Go back to the main application"
+            onClick={handleGoToHome}
           />
         </div>
       </CardContent>

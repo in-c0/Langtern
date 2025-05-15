@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { findMatches } from "@/actions/matchmaking"
 import { findMatchesFallback } from "@/actions/fallback-matching"
 import { ManualJobSearch } from "@/components/manual-job-search"
+import { AIMatchmaking } from "@/components/ai-matchmaking"
 import type { UserProfile, MatchResult } from "@/types/matching"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -110,12 +111,19 @@ export function MatchmakingScreen({ onSelectMatch }) {
       <h2 className="text-xl font-semibold mb-1">Find Your Match</h2>
       <p className="text-sm text-muted-foreground mb-4">AI-powered matchmaking based on your profile</p>
 
-      <Tabs defaultValue="recommended" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="recommended">Recommended</TabsTrigger>
-          <TabsTrigger value="search">Manual Search</TabsTrigger>
+      <Tabs defaultValue="swipe" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-4">
+          <TabsTrigger value="swipe">Swipe</TabsTrigger>
+          <TabsTrigger value="recommended">List</TabsTrigger>
+          <TabsTrigger value="search">Search</TabsTrigger>
           <TabsTrigger value="saved">Saved</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="swipe" className="space-y-4">
+          <div className="py-8">
+            <AIMatchmaking onSendMessage={onSelectMatch} />
+          </div>
+        </TabsContent>
 
         <TabsContent value="recommended" className="space-y-4">
           <div className="flex items-center gap-2 mb-4">

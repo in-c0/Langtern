@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Globe, Briefcase, MessageSquare, CheckCircle, LogIn } from "lucide-react"
+import { Globe, Briefcase, MessageSquare, CheckCircle, LogIn, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { WelcomeScreen } from "@/components/welcome-screen"
@@ -17,7 +17,7 @@ import { MatchListings } from "@/components/match-listings"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 
-// Guest user profile data
+// Guest user profile data - no longer needed as we'll use real login
 const guestUserProfile = {
   fullName: "Guest User",
   email: "guest@langtern.com",
@@ -39,18 +39,57 @@ export default function LangternApp() {
   const [currentScreen, setCurrentScreen] = useState("welcome")
   const [userType, setUserType] = useState<"student" | "business" | null>(null)
   const [userProfile, setUserProfile] = useState(null)
-  const { user } = useAuth()
+  const { user, isLoading, signIn } = useAuth()
   const router = useRouter()
+  const [isGuestLoggingIn, setIsGuestLoggingIn] = useState(false)
+
+  // Check if user is logged in and has completed their profile
+  useEffect(() => {
+    if (!isLoading && user) {
+      // If user is logged in but we're on the welcome screen,
+      // move them to matchmaking directly
+      if (currentScreen === "welcome") {
+        setUserType(user.userType || "student") // Default to student if not specified
+        setCurrentScreen("matchmaking")
+      }
+
+      // If we were in the process of guest login and now have a user, go to matchmaking
+      if (isGuestLoggingIn) {
+        setIsGuestLoggingIn(false)
+        setCurrentScreen("matchmaking")
+      }
+    }
+  }, [isLoading, user, currentScreen, isGuestLoggingIn])
 
   const handleUserTypeSelection = (type: "student" | "business") => {
-    setUserType(type)
-    setCurrentScreen("profile")
+    if (user) {
+      // If user is already logged in, just set type and go to matchmaking
+      setUserType(type)
+      setCurrentScreen("matchmaking")
+    } else {
+      // If not logged in, go to profile creation
+      setUserType(type)
+      setCurrentScreen("profile")
+    }
   }
 
-  const handleGuestContinue = () => {
-    setUserType("student")
-    setUserProfile(guestUserProfile)
-    setCurrentScreen("matchmaking")
+  const handleGuestContinue = async () => {
+    // Use the specified guest credentials
+    setIsGuestLoggingIn(true)
+    try {
+      await signIn({
+        email: "a2@a.com",
+        password: "123",
+      })
+      // The useEffect will handle navigation once login is complete
+    } catch (error) {
+      console.error("Guest login failed:", error)
+      setIsGuestLoggingIn(false)
+      // Fallback to the old method if login fails
+      setUserType("student")
+      setUserProfile(guestUserProfile)
+      setCurrentScreen("matchmaking")
+    }
   }
 
   const handleProfileComplete = (profileData) => {
@@ -60,6 +99,18 @@ export default function LangternApp() {
 
   const handleBackToWelcome = () => {
     setCurrentScreen("welcome")
+  }
+
+  const handleLogin = () => {
+    router.push("/login")
+  }
+
+  const handleGoToProfile = () => {
+    router.push("/profile")
+  }
+
+  const handleFindMatches = () => {
+    setCurrentScreen("matchmaking")
   }
 
   const renderScreen = () => {
@@ -112,22 +163,26 @@ export default function LangternApp() {
                 Home
               </Button>
             )}
-            {user ? (
+
+            {/* Show Find Matches button for logged in users */}
+            {user && currentScreen !== "matchmaking" && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => router.push("/profile")}
-                className="text-blue-500 border-blue-500"
+                onClick={handleFindMatches}
+                className="text-green-500 border-green-500"
               >
+                <Search className="h-4 w-4 mr-1" />
+                Find Matches
+              </Button>
+            )}
+
+            {user ? (
+              <Button variant="outline" size="sm" onClick={handleGoToProfile} className="text-blue-500 border-blue-500">
                 My Profile
               </Button>
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push("/login")}
-                className="text-blue-500 border-blue-500"
-              >
+              <Button variant="outline" size="sm" onClick={handleLogin} className="text-blue-500 border-blue-500">
                 <LogIn className="h-4 w-4 mr-1" />
                 Login
               </Button>
@@ -173,7 +228,16 @@ export default function LangternApp() {
       {/* Main Content */}
       <div className="w-full max-w-md">
         <Card className="border border-border/40 shadow-lg overflow-hidden">
-          <div className="p-4">{renderScreen()}</div>
+          <div className="p-4">
+            {isGuestLoggingIn ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                <p className="text-muted-foreground">Logging in as guest...</p>
+              </div>
+            ) : (
+              renderScreen()
+            )}
+          </div>
         </Card>
       </div>
 

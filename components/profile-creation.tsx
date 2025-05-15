@@ -2,14 +2,42 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { User, Languages, Briefcase, Clock, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react"
+import { User, Languages, Briefcase, Clock, ChevronRight, ChevronLeft, AlertCircle, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from "@/contexts/auth-context"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+
+// Language options
+const LANGUAGES = [
+  { code: "en", name: "English" },
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+  { code: "ja", name: "Japanese" },
+  { code: "zh", name: "Chinese (Mandarin)" },
+  { code: "ko", name: "Korean" },
+  { code: "pt", name: "Portuguese" },
+  { code: "it", name: "Italian" },
+  { code: "ru", name: "Russian" },
+  { code: "ar", name: "Arabic" },
+  { code: "hi", name: "Hindi" },
+]
+
+// Proficiency levels
+const PROFICIENCY_LEVELS = [
+  { value: "beginner", label: "Beginner" },
+  { value: "elementary", label: "Elementary" },
+  { value: "intermediate", label: "Intermediate" },
+  { value: "advanced", label: "Advanced" },
+  { value: "fluent", label: "Fluent" },
+  { value: "native", label: "Native" },
+]
 
 export function ProfileCreation({ onComplete, onBack }) {
   const [step, setStep] = useState(1)
@@ -17,10 +45,10 @@ export function ProfileCreation({ onComplete, onBack }) {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    password: "",
     location: "",
     bio: "",
-    nativeLanguage: "",
-    targetLanguage: "",
+    languages: [], // Array of language objects with proficiency levels
     field: "",
     educationLevel: "",
     skills: "",
@@ -31,9 +59,56 @@ export function ProfileCreation({ onComplete, onBack }) {
     compensation: "",
   })
   const [errors, setErrors] = useState([])
+  const [registrationError, setRegistrationError] = useState("")
+  const [isRegistering, setIsRegistering] = useState(false)
+  const { signUp, updateUserType } = useAuth()
+
+  // State for language selection
+  const [selectedLanguage, setSelectedLanguage] = useState("")
+  const [isLearning, setIsLearning] = useState(false)
+  const [readingLevel, setReadingLevel] = useState("intermediate")
+  const [writingLevel, setWritingLevel] = useState("intermediate")
+  const [speakingLevel, setSpeakingLevel] = useState("intermediate")
 
   const updateFormData = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const addLanguage = () => {
+    if (!selectedLanguage) return
+
+    // Check if language already exists
+    if (formData.languages.some((lang) => lang.code === selectedLanguage)) {
+      return
+    }
+
+    const languageName = LANGUAGES.find((lang) => lang.code === selectedLanguage)?.name || selectedLanguage
+
+    const newLanguage = {
+      code: selectedLanguage,
+      name: languageName,
+      isLearning: isLearning,
+      proficiency: {
+        reading: readingLevel,
+        writing: writingLevel,
+        speaking: speakingLevel,
+      },
+    }
+
+    updateFormData("languages", [...formData.languages, newLanguage])
+
+    // Reset selection
+    setSelectedLanguage("")
+    setReadingLevel("intermediate")
+    setWritingLevel("intermediate")
+    setSpeakingLevel("intermediate")
+  }
+
+  const removeLanguage = (code) => {
+    updateFormData(
+      "languages",
+      formData.languages.filter((lang) => lang.code !== code),
+    )
   }
 
   const validateFinalStep = () => {
@@ -49,12 +124,65 @@ export function ProfileCreation({ onComplete, onBack }) {
     return true
   }
 
+  const validatePersonalInfo = () => {
+    const requiredFields = ["fullName", "email", "password"]
+    const missingFields = requiredFields.filter((field) => !formData[field])
+
+    if (missingFields.length > 0) {
+      setErrors(missingFields)
+      return false
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      setErrors(["email"])
+      setRegistrationError("Please enter a valid email address")
+      return false
+    }
+
+    // Basic password validation
+    if (formData.password.length < 6) {
+      setErrors(["password"])
+      setRegistrationError("Password must be at least 6 characters")
+      return false
+    }
+
+    setErrors([])
+    setRegistrationError("")
+    return true
+  }
+
+  const validateLanguageStep = () => {
+    if (formData.languages.length === 0) {
+      setErrors(["languages"])
+      return false
+    }
+
+    setErrors([])
+    return true
+  }
+
   const nextStep = () => {
+    // For the first step, validate personal info
+    if (step === 1) {
+      if (!validatePersonalInfo()) {
+        return
+      }
+    }
+
+    // For the second step, validate languages
+    if (step === 2) {
+      if (!validateLanguageStep()) {
+        return
+      }
+    }
+
     if (step < totalSteps) {
       setStep(step + 1)
     } else {
       if (validateFinalStep()) {
-        onComplete(formData)
+        handleProfileComplete()
       }
     }
   }
@@ -67,8 +195,43 @@ export function ProfileCreation({ onComplete, onBack }) {
     }
   }
 
+  const handleProfileComplete = async () => {
+    setIsRegistering(true)
+    setRegistrationError("")
+
+    try {
+      // Register the user with the server
+      const { error, user } = await signUp({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.fullName.split(" ")[0],
+        lastName: formData.fullName.split(" ").slice(1).join(" ") || "",
+      })
+
+      if (error) {
+        setRegistrationError(error)
+        setIsRegistering(false)
+        return
+      }
+
+      // Set user type to student
+      updateUserType("student")
+
+      // Call onComplete with the form data
+      onComplete(formData)
+    } catch (error) {
+      console.error("Registration error:", error)
+      setRegistrationError("An unexpected error occurred. Please try again.")
+      setIsRegistering(false)
+    }
+  }
+
   const getFieldLabel = (field) => {
     const labels = {
+      fullName: "Full Name",
+      email: "Email Address",
+      password: "Password",
+      languages: "Languages",
       availability: "Availability",
       duration: "Duration",
       workArrangement: "Work Arrangement",
@@ -91,8 +254,33 @@ export function ProfileCreation({ onComplete, onBack }) {
         exit={{ x: -20, opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {step === 1 && <PersonalInfoStep formData={formData} updateFormData={updateFormData} />}
-        {step === 2 && <LanguageSkillsStep formData={formData} updateFormData={updateFormData} />}
+        {step === 1 && (
+          <PersonalInfoStep
+            formData={formData}
+            updateFormData={updateFormData}
+            errors={errors}
+            registrationError={registrationError}
+          />
+        )}
+        {step === 2 && (
+          <LanguageSkillsStep
+            formData={formData}
+            languages={formData.languages}
+            selectedLanguage={selectedLanguage}
+            setSelectedLanguage={setSelectedLanguage}
+            isLearning={isLearning}
+            setIsLearning={setIsLearning}
+            readingLevel={readingLevel}
+            setReadingLevel={setReadingLevel}
+            writingLevel={writingLevel}
+            setWritingLevel={setWritingLevel}
+            speakingLevel={speakingLevel}
+            setSpeakingLevel={setSpeakingLevel}
+            addLanguage={addLanguage}
+            removeLanguage={removeLanguage}
+            errors={errors}
+          />
+        )}
         {step === 3 && <ProfessionalSkillsStep formData={formData} updateFormData={updateFormData} />}
         {step === 4 && <AvailabilityStep formData={formData} updateFormData={updateFormData} />}
 
@@ -107,12 +295,25 @@ export function ProfileCreation({ onComplete, onBack }) {
       </motion.div>
 
       <div className="flex justify-between mt-8">
-        <Button variant="outline" size="sm" onClick={prevStep}>
+        <Button variant="outline" size="sm" onClick={prevStep} disabled={isRegistering}>
           <ChevronLeft className="h-4 w-4 mr-1" /> {step === 1 ? "Back to Home" : "Back"}
         </Button>
 
-        <Button onClick={nextStep} size="sm" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-          {step === totalSteps ? "Complete" : "Next"} <ChevronRight className="h-4 w-4 ml-1" />
+        <Button
+          onClick={nextStep}
+          size="sm"
+          className="bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+          disabled={isRegistering}
+        >
+          {isRegistering ? (
+            <>
+              <span className="animate-spin mr-2">⟳</span> Creating Account...
+            </>
+          ) : (
+            <>
+              {step === totalSteps ? "Complete" : "Next"} <ChevronRight className="h-4 w-4 ml-1" />
+            </>
+          )}
         </Button>
       </div>
     </div>
@@ -134,7 +335,7 @@ function getStepTitle(step) {
   }
 }
 
-function PersonalInfoStep({ formData, updateFormData }) {
+function PersonalInfoStep({ formData, updateFormData, errors, registrationError }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-center mb-4">
@@ -153,6 +354,7 @@ function PersonalInfoStep({ formData, updateFormData }) {
           placeholder="Enter your full name"
           value={formData.fullName}
           onChange={(e) => updateFormData("fullName", e.target.value)}
+          className={errors.includes("fullName") ? "border-red-500" : ""}
         />
       </div>
 
@@ -164,8 +366,29 @@ function PersonalInfoStep({ formData, updateFormData }) {
           placeholder="your@email.com"
           value={formData.email}
           onChange={(e) => updateFormData("email", e.target.value)}
+          className={errors.includes("email") ? "border-red-500" : ""}
         />
       </div>
+
+      <div>
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="Create a password"
+          value={formData.password}
+          onChange={(e) => updateFormData("password", e.target.value)}
+          className={errors.includes("password") ? "border-red-500" : ""}
+        />
+        <p className="text-xs text-muted-foreground mt-1">Password must be at least 6 characters</p>
+      </div>
+
+      {registrationError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{registrationError}</AlertDescription>
+        </Alert>
+      )}
 
       <div>
         <Label htmlFor="location">Location</Label>
@@ -200,9 +423,28 @@ function PersonalInfoStep({ formData, updateFormData }) {
   )
 }
 
-function LanguageSkillsStep({ formData, updateFormData }) {
+function LanguageSkillsStep({
+  formData,
+  languages,
+  selectedLanguage,
+  setSelectedLanguage,
+  isLearning,
+  setIsLearning,
+  readingLevel,
+  setReadingLevel,
+  writingLevel,
+  setWritingLevel,
+  speakingLevel,
+  setSpeakingLevel,
+  addLanguage,
+  removeLanguage,
+  errors,
+}) {
+  // Filter out languages that are already selected
+  const availableLanguages = LANGUAGES.filter((lang) => !languages.some((userLang) => userLang.code === lang.code))
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-center mb-4">
         <div className="relative w-20 h-20 rounded-full bg-purple-500/10 flex items-center justify-center">
           <Languages className="h-8 w-8 text-purple-500" />
@@ -212,74 +454,153 @@ function LanguageSkillsStep({ formData, updateFormData }) {
         </div>
       </div>
 
-      <div>
-        <Label>Native Language</Label>
-        <Select value={formData.nativeLanguage} onValueChange={(value) => updateFormData("nativeLanguage", value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select your native language" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="es">Spanish</SelectItem>
-            <SelectItem value="fr">French</SelectItem>
-            <SelectItem value="de">German</SelectItem>
-            <SelectItem value="ja">Japanese</SelectItem>
-            <SelectItem value="zh">Chinese (Mandarin)</SelectItem>
-            <SelectItem value="ko">Korean</SelectItem>
-            <SelectItem value="pt">Portuguese</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {errors.includes("languages") && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>Please add at least one language</AlertDescription>
+        </Alert>
+      )}
 
-      <div>
-        <Label>Languages I Want to Learn</Label>
-        <Select value={formData.targetLanguage} onValueChange={(value) => updateFormData("targetLanguage", value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select target language" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="es">Spanish</SelectItem>
-            <SelectItem value="fr">French</SelectItem>
-            <SelectItem value="de">German</SelectItem>
-            <SelectItem value="ja">Japanese</SelectItem>
-            <SelectItem value="zh">Chinese (Mandarin)</SelectItem>
-            <SelectItem value="ko">Korean</SelectItem>
-            <SelectItem value="pt">Portuguese</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Language selection */}
+      <Card className={errors.includes("languages") ? "border-red-500" : ""}>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Select Language</Label>
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableLanguages.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        {lang.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      <div>
-        <Label className="mb-2 block">Current Proficiency Level</Label>
-        <div className="space-y-6">
-          <LanguageProficiency language="English" level={90} />
-          <LanguageProficiency language="Spanish" level={40} />
-          <LanguageProficiency language="Japanese" level={10} />
+              <div className="flex items-end">
+                <Label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isLearning}
+                    onChange={(e) => setIsLearning(e.target.checked)}
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span>I want to learn this language</span>
+                </Label>
+              </div>
+            </div>
+
+            {selectedLanguage && (
+              <div className="space-y-4 border-t pt-4 mt-4">
+                <h4 className="font-medium">Proficiency Levels</h4>
+
+                <div>
+                  <Label>Reading</Label>
+                  <Select value={readingLevel} onValueChange={setReadingLevel}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROFICIENCY_LEVELS.map((level) => (
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Writing</Label>
+                  <Select value={writingLevel} onValueChange={setWritingLevel}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROFICIENCY_LEVELS.map((level) => (
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Speaking</Label>
+                  <Select value={speakingLevel} onValueChange={setSpeakingLevel}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROFICIENCY_LEVELS.map((level) => (
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button onClick={addLanguage} className="w-full" variant="outline">
+                  <Plus className="h-4 w-4 mr-2" /> Add Language
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Selected languages */}
+      {languages.length > 0 && (
+        <div className="space-y-4">
+          <h4 className="font-medium">Your Languages</h4>
+
+          <div className="space-y-3">
+            {languages.map((lang) => (
+              <Card key={lang.code} className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => removeLanguage(lang.code)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+
+                <CardContent className="pt-6">
+                  <div className="flex items-center mb-3">
+                    <h5 className="font-semibold text-lg">{lang.name}</h5>
+                    {lang.isLearning && <Badge className="ml-2 bg-purple-500">Learning</Badge>}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Reading:</span>
+                      <div className="font-medium capitalize">{lang.proficiency.reading}</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Writing:</span>
+                      <div className="font-medium capitalize">{lang.proficiency.writing}</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Speaking:</span>
+                      <div className="font-medium capitalize">{lang.proficiency.speaking}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
-}
-
-function LanguageProficiency({ language, level }) {
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span>{language}</span>
-        <span className="text-muted-foreground">{getProficiencyLabel(level)}</span>
-      </div>
-      <Slider defaultValue={[level]} max={100} step={1} />
-    </div>
-  )
-}
-
-function getProficiencyLabel(level) {
-  if (level < 20) return "Beginner"
-  if (level < 40) return "Elementary"
-  if (level < 60) return "Intermediate"
-  if (level < 80) return "Advanced"
-  return "Native/Fluent"
 }
 
 function ProfessionalSkillsStep({ formData, updateFormData }) {
