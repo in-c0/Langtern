@@ -2,30 +2,79 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { User, Languages, Briefcase, Clock, ChevronRight, ChevronLeft } from "lucide-react"
+import { User, Languages, Briefcase, Clock, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-export function ProfileCreation({ onComplete }) {
+export function ProfileCreation({ onComplete, onBack }) {
   const [step, setStep] = useState(1)
   const totalSteps = 4
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    location: "",
+    bio: "",
+    nativeLanguage: "",
+    targetLanguage: "",
+    field: "",
+    educationLevel: "",
+    skills: "",
+    experienceLevel: "",
+    availability: "",
+    duration: "",
+    workArrangement: "",
+    compensation: "",
+  })
+  const [errors, setErrors] = useState([])
+
+  const updateFormData = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const validateFinalStep = () => {
+    const requiredFields = ["availability", "duration", "workArrangement", "compensation"]
+    const missingFields = requiredFields.filter((field) => !formData[field])
+
+    if (missingFields.length > 0) {
+      setErrors(missingFields)
+      return false
+    }
+
+    setErrors([])
+    return true
+  }
 
   const nextStep = () => {
     if (step < totalSteps) {
       setStep(step + 1)
     } else {
-      onComplete()
+      if (validateFinalStep()) {
+        onComplete(formData)
+      }
     }
   }
 
   const prevStep = () => {
     if (step > 1) {
       setStep(step - 1)
+    } else {
+      onBack()
     }
+  }
+
+  const getFieldLabel = (field) => {
+    const labels = {
+      availability: "Availability",
+      duration: "Duration",
+      workArrangement: "Work Arrangement",
+      compensation: "Compensation",
+    }
+    return labels[field] || field
   }
 
   return (
@@ -42,15 +91,24 @@ export function ProfileCreation({ onComplete }) {
         exit={{ x: -20, opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {step === 1 && <PersonalInfoStep />}
-        {step === 2 && <LanguageSkillsStep />}
-        {step === 3 && <ProfessionalSkillsStep />}
-        {step === 4 && <AvailabilityStep />}
+        {step === 1 && <PersonalInfoStep formData={formData} updateFormData={updateFormData} />}
+        {step === 2 && <LanguageSkillsStep formData={formData} updateFormData={updateFormData} />}
+        {step === 3 && <ProfessionalSkillsStep formData={formData} updateFormData={updateFormData} />}
+        {step === 4 && <AvailabilityStep formData={formData} updateFormData={updateFormData} />}
+
+        {errors.length > 0 && step === totalSteps && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Please fill in the following required fields: {errors.map((field) => getFieldLabel(field)).join(", ")}
+            </AlertDescription>
+          </Alert>
+        )}
       </motion.div>
 
       <div className="flex justify-between mt-8">
-        <Button variant="outline" size="sm" onClick={prevStep} disabled={step === 1}>
-          <ChevronLeft className="h-4 w-4 mr-1" /> Back
+        <Button variant="outline" size="sm" onClick={prevStep}>
+          <ChevronLeft className="h-4 w-4 mr-1" /> {step === 1 ? "Back to Home" : "Back"}
         </Button>
 
         <Button onClick={nextStep} size="sm" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
@@ -76,7 +134,7 @@ function getStepTitle(step) {
   }
 }
 
-function PersonalInfoStep() {
+function PersonalInfoStep({ formData, updateFormData }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-center mb-4">
@@ -89,18 +147,29 @@ function PersonalInfoStep() {
       </div>
 
       <div>
-        <Label htmlFor="name">Full Name</Label>
-        <Input id="name" placeholder="Enter your full name" />
+        <Label htmlFor="fullName">Full Name</Label>
+        <Input
+          id="fullName"
+          placeholder="Enter your full name"
+          value={formData.fullName}
+          onChange={(e) => updateFormData("fullName", e.target.value)}
+        />
       </div>
 
       <div>
         <Label htmlFor="email">Email Address</Label>
-        <Input id="email" type="email" placeholder="your@email.com" />
+        <Input
+          id="email"
+          type="email"
+          placeholder="your@email.com"
+          value={formData.email}
+          onChange={(e) => updateFormData("email", e.target.value)}
+        />
       </div>
 
       <div>
         <Label htmlFor="location">Location</Label>
-        <Select>
+        <Select value={formData.location} onValueChange={(value) => updateFormData("location", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select your country" />
           </SelectTrigger>
@@ -119,13 +188,19 @@ function PersonalInfoStep() {
 
       <div>
         <Label htmlFor="bio">Short Bio</Label>
-        <Textarea id="bio" placeholder="Tell us a bit about yourself..." className="resize-none" />
+        <Textarea
+          id="bio"
+          placeholder="Tell us a bit about yourself..."
+          className="resize-none"
+          value={formData.bio}
+          onChange={(e) => updateFormData("bio", e.target.value)}
+        />
       </div>
     </div>
   )
 }
 
-function LanguageSkillsStep() {
+function LanguageSkillsStep({ formData, updateFormData }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-center mb-4">
@@ -139,7 +214,7 @@ function LanguageSkillsStep() {
 
       <div>
         <Label>Native Language</Label>
-        <Select>
+        <Select value={formData.nativeLanguage} onValueChange={(value) => updateFormData("nativeLanguage", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select your native language" />
           </SelectTrigger>
@@ -158,7 +233,7 @@ function LanguageSkillsStep() {
 
       <div>
         <Label>Languages I Want to Learn</Label>
-        <Select>
+        <Select value={formData.targetLanguage} onValueChange={(value) => updateFormData("targetLanguage", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select target language" />
           </SelectTrigger>
@@ -207,7 +282,7 @@ function getProficiencyLabel(level) {
   return "Native/Fluent"
 }
 
-function ProfessionalSkillsStep() {
+function ProfessionalSkillsStep({ formData, updateFormData }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-center mb-4">
@@ -221,7 +296,7 @@ function ProfessionalSkillsStep() {
 
       <div>
         <Label>Field of Study/Industry</Label>
-        <Select>
+        <Select value={formData.field} onValueChange={(value) => updateFormData("field", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select your field" />
           </SelectTrigger>
@@ -240,7 +315,7 @@ function ProfessionalSkillsStep() {
 
       <div>
         <Label>Education Level</Label>
-        <Select>
+        <Select value={formData.educationLevel} onValueChange={(value) => updateFormData("educationLevel", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select your education level" />
           </SelectTrigger>
@@ -260,12 +335,14 @@ function ProfessionalSkillsStep() {
           id="skills"
           placeholder="Enter your key skills (e.g., Python, Marketing, Graphic Design)"
           className="resize-none"
+          value={formData.skills}
+          onChange={(e) => updateFormData("skills", e.target.value)}
         />
       </div>
 
       <div>
         <Label htmlFor="experience">Experience Level</Label>
-        <Select>
+        <Select value={formData.experienceLevel} onValueChange={(value) => updateFormData("experienceLevel", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select your experience level" />
           </SelectTrigger>
@@ -281,7 +358,7 @@ function ProfessionalSkillsStep() {
   )
 }
 
-function AvailabilityStep() {
+function AvailabilityStep({ formData, updateFormData }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-center mb-4">
@@ -295,7 +372,7 @@ function AvailabilityStep() {
 
       <div>
         <Label>Availability</Label>
-        <Select>
+        <Select value={formData.availability} onValueChange={(value) => updateFormData("availability", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select your availability" />
           </SelectTrigger>
@@ -310,7 +387,7 @@ function AvailabilityStep() {
 
       <div>
         <Label>Preferred Duration</Label>
-        <Select>
+        <Select value={formData.duration} onValueChange={(value) => updateFormData("duration", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select preferred duration" />
           </SelectTrigger>
@@ -326,7 +403,7 @@ function AvailabilityStep() {
 
       <div>
         <Label>Remote/On-site Preference</Label>
-        <Select>
+        <Select value={formData.workArrangement} onValueChange={(value) => updateFormData("workArrangement", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select work arrangement" />
           </SelectTrigger>
@@ -341,7 +418,7 @@ function AvailabilityStep() {
 
       <div>
         <Label>Compensation Expectations</Label>
-        <Select>
+        <Select value={formData.compensation} onValueChange={(value) => updateFormData("compensation", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select compensation type" />
           </SelectTrigger>

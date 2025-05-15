@@ -105,14 +105,20 @@ export async function findMatches(userProfile: UserProfile): Promise<MatchResult
     const languages = userProfile.languages.map((lang) => lang.language)
 
     // Call the backend API to search for jobs
-    const searchResults = await searchJobs({
-      searchValue,
-      skills,
-      languages,
-    })
+    let searchResults = []
+    try {
+      searchResults = await searchJobs({
+        searchValue,
+        skills,
+        languages,
+      })
+    } catch (apiError) {
+      console.error("API search failed:", apiError)
+      // Continue with empty results, will use fallback below
+    }
 
     // If the API returns results, transform them to match our MatchResult type
-    if (searchResults && Array.isArray(searchResults)) {
+    if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
       return searchResults.map((result, index) => {
         // Map the API response to our MatchResult type
         return {
@@ -159,6 +165,7 @@ export async function findMatches(userProfile: UserProfile): Promise<MatchResult
       })
   } catch (error) {
     console.error("Error in matchmaking:", error)
-    throw new Error("Failed to generate matches. Please try again later.")
+    // Return empty array instead of throwing an error
+    return []
   }
 }

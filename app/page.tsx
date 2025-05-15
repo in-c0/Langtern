@@ -2,27 +2,76 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Globe, Briefcase, MessageSquare, CheckCircle } from "lucide-react"
+import { Globe, Briefcase, MessageSquare, CheckCircle, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { WelcomeScreen } from "@/components/welcome-screen"
 import { ProfileCreation } from "@/components/profile-creation"
+import { BusinessProfileCreation } from "@/components/business-profile-creation"
 import { MatchmakingScreen } from "@/components/matchmaking-screen"
 import { ChatScreen } from "@/components/chat-screen"
 import { AgreementScreen } from "@/components/agreement-screen"
 import { AIMatchmakingExplainer } from "@/components/ai-matchmaking-explainer"
 import { TranslationIndicator } from "@/components/translation-indicator"
 import { MatchListings } from "@/components/match-listings"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
+
+// Guest user profile data
+const guestUserProfile = {
+  fullName: "Guest User",
+  email: "guest@langtern.com",
+  location: "us",
+  bio: "I'm exploring Langtern as a guest user.",
+  nativeLanguage: "en",
+  targetLanguage: "es",
+  field: "tech",
+  educationLevel: "bachelors",
+  skills: "Web Development, UI/UX Design, Content Writing",
+  experienceLevel: "entry",
+  availability: "part-time",
+  duration: "3-months",
+  workArrangement: "remote",
+  compensation: "negotiable",
+}
 
 export default function LangternApp() {
   const [currentScreen, setCurrentScreen] = useState("welcome")
+  const [userType, setUserType] = useState<"student" | "business" | null>(null)
+  const [userProfile, setUserProfile] = useState(null)
+  const { user } = useAuth()
+  const router = useRouter()
+
+  const handleUserTypeSelection = (type: "student" | "business") => {
+    setUserType(type)
+    setCurrentScreen("profile")
+  }
+
+  const handleGuestContinue = () => {
+    setUserType("student")
+    setUserProfile(guestUserProfile)
+    setCurrentScreen("matchmaking")
+  }
+
+  const handleProfileComplete = (profileData) => {
+    setUserProfile(profileData)
+    setCurrentScreen("matchmaking")
+  }
+
+  const handleBackToWelcome = () => {
+    setCurrentScreen("welcome")
+  }
 
   const renderScreen = () => {
     switch (currentScreen) {
       case "welcome":
-        return <WelcomeScreen onContinue={() => setCurrentScreen("profile")} />
+        return <WelcomeScreen onContinue={handleUserTypeSelection} onGuestContinue={handleGuestContinue} />
       case "profile":
-        return <ProfileCreation onComplete={() => setCurrentScreen("matchmaking")} />
+        return userType === "business" ? (
+          <BusinessProfileCreation onComplete={handleProfileComplete} onBack={handleBackToWelcome} />
+        ) : (
+          <ProfileCreation onComplete={handleProfileComplete} onBack={handleBackToWelcome} />
+        )
       case "matchmaking":
         return (
           <>
@@ -37,7 +86,7 @@ export default function LangternApp() {
       case "dashboard":
         return <MatchListings />
       default:
-        return <WelcomeScreen onContinue={() => setCurrentScreen("profile")} />
+        return <WelcomeScreen onContinue={handleUserTypeSelection} onGuestContinue={handleGuestContinue} />
     }
   }
 
@@ -61,6 +110,26 @@ export default function LangternApp() {
                 className="text-muted-foreground"
               >
                 Home
+              </Button>
+            )}
+            {user ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push("/profile")}
+                className="text-blue-500 border-blue-500"
+              >
+                My Profile
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push("/login")}
+                className="text-blue-500 border-blue-500"
+              >
+                <LogIn className="h-4 w-4 mr-1" />
+                Login
               </Button>
             )}
           </div>

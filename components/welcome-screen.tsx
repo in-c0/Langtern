@@ -1,10 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Globe, Languages, Briefcase, ChevronRight } from "lucide-react"
+import { Globe, Languages, Briefcase, ChevronRight, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function WelcomeScreen({ onContinue }) {
+export function WelcomeScreen({ onContinue, onGuestContinue }) {
   return (
     <div className="flex flex-col items-center py-6">
       <motion.div
@@ -49,14 +49,14 @@ export function WelcomeScreen({ onContinue }) {
           icon={<Languages className="h-5 w-5" />}
           title="I'm a Student"
           description="Looking for internships & language practice"
-          onClick={onContinue}
+          onClick={() => onContinue("student")}
         />
 
         <UserTypeButton
           icon={<Briefcase className="h-5 w-5" />}
           title="I'm a Business"
           description="Seeking interns & language exchange"
-          onClick={onContinue}
+          onClick={() => onContinue("business")}
         />
       </motion.div>
 
@@ -65,7 +65,13 @@ export function WelcomeScreen({ onContinue }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <Button variant="ghost" size="sm" onClick={onContinue} className="text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onGuestContinue}
+          className="flex items-center gap-1 text-muted-foreground"
+        >
+          <User className="h-4 w-4" />
           Explore as Guest
         </Button>
       </motion.div>

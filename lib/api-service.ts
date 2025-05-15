@@ -53,29 +53,43 @@ export async function searchJobs(params: SearchJobParams): Promise<JobResult[]> 
 
     if (!response.ok) {
       console.error("Search API error:", response.status, await response.text())
-      throw new Error(`API error: ${response.status}`)
+      // Return empty array instead of throwing an error
+      return []
     }
 
-    const data = await response.json()
-    console.log("Raw API response:", data)
+    // Get the raw text response first
+    const rawText = await response.text()
+    console.log("Raw API response text:", rawText)
 
-    // Handle the nested JSON string in the response field
-    if (data && typeof data.response === "string") {
-      try {
-        // Parse the nested JSON string
-        const parsedJobs = JSON.parse(data.response.trim())
-        console.log("Parsed jobs:", parsedJobs)
+    // Try to parse as JSON
+    try {
+      const data = JSON.parse(rawText)
+      console.log("Parsed API response:", data)
 
-        // Return the parsed jobs array
-        return Array.isArray(parsedJobs) ? parsedJobs : []
-      } catch (parseError) {
-        console.error("Error parsing job results:", parseError)
-        return []
+      // Handle the nested JSON string in the response field
+      if (data && typeof data.response === "string") {
+        try {
+          // Parse the nested JSON string
+          const parsedJobs = JSON.parse(data.response.trim())
+          console.log("Parsed jobs:", parsedJobs)
+
+          // Return the parsed jobs array
+          return Array.isArray(parsedJobs) ? parsedJobs : []
+        } catch (parseError) {
+          console.error("Error parsing job results:", parseError)
+          // Return empty array instead of throwing an error
+          return []
+        }
       }
-    }
 
-    // Fallback if the response format is different
-    return Array.isArray(data) ? data : []
+      // Fallback if the response format is different
+      return Array.isArray(data) ? data : []
+    } catch (jsonError) {
+      console.error("Error parsing API response as JSON:", jsonError)
+      console.log("Non-JSON response received:", rawText)
+      // Return empty array instead of throwing an error
+      return []
+    }
   } catch (error) {
     console.error("Error searching jobs:", error)
     return []
@@ -96,16 +110,35 @@ export async function translateText(params: TranslationParams): Promise<Translat
     })
 
     if (!response.ok) {
-      console.error("Translation API error:", response.status, await response.text())
+      console.error("Translation API error:", response.status)
+      const errorText = await response.text()
+      console.error("Translation error response:", errorText)
       throw new Error(`API error: ${response.status}`)
     }
 
-    const result = await response.json()
-    console.log("Translation API response:", result)
+    // Get the raw text response first
+    const rawText = await response.text()
+    console.log("Raw translation API response text:", rawText)
 
-    return {
-      translatedText: result.translatedText || params.text,
-      detectedLanguage: result.detectedLanguage,
+    // Try to parse as JSON
+    try {
+      const result = JSON.parse(rawText)
+      console.log("Translation API response:", result)
+
+      // Extract the translated text from the response
+      // The API returns { "response": "translated text" }
+      const translatedText = result.response ? result.response.trim() : params.text
+
+      return {
+        translatedText: translatedText,
+        detectedLanguage: result.detectedLanguage,
+      }
+    } catch (jsonError) {
+      console.error("Error parsing translation response as JSON:", jsonError)
+      // Return the original text if parsing fails
+      return {
+        translatedText: params.text,
+      }
     }
   } catch (error) {
     console.error("Error translating text:", error)
