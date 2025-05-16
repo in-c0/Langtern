@@ -100,8 +100,8 @@ export function ManualJobSearch({ onSelectJob }) {
       setLoading(true)
       setError(null)
 
-      // Use either selected location or custom location
-      const searchValue = location || customLocation
+      // Prioritize custom location if it's filled, otherwise use selected location
+      const searchValue = customLocation || location
 
       if (!searchValue) {
         setError("Please select or enter a location")

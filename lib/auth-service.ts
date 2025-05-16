@@ -12,6 +12,37 @@ export interface RegisterCredentials {
   lastName: string
 }
 
+export interface ProfileInfo {
+  location: string
+  bio: string
+  languages: Array<{
+    code: string
+    name: string
+    isLearning: boolean
+    proficiency: {
+      reading: string
+      writing: string
+      speaking: string
+    }
+  }>
+  field: string
+  educationLevel: string
+  skills: string
+  experienceLevel: string
+  availability: string
+  duration: string
+  workArrangement: string
+  compensation: string
+}
+
+export interface CompleteProfileData {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  info: ProfileInfo
+}
+
 export interface AuthResponse {
   _id: number
   email: string
@@ -66,7 +97,7 @@ export async function loginUser(
 }
 
 export async function registerUser(
-  credentials: RegisterCredentials,
+  credentials: RegisterCredentials | CompleteProfileData,
 ): Promise<{ data: AuthResponse | null; error: string | null }> {
   try {
     console.log("Registering user:", credentials.email)

@@ -200,13 +200,29 @@ export function ProfileCreation({ onComplete, onBack }) {
     setRegistrationError("")
 
     try {
-      // Register the user with the server
-      const { error, user } = await signUp({
+      // Format the data according to the required structure
+      const completeProfileData = {
         email: formData.email,
         password: formData.password,
         firstName: formData.fullName.split(" ")[0],
         lastName: formData.fullName.split(" ").slice(1).join(" ") || "",
-      })
+        info: {
+          location: formData.location,
+          bio: formData.bio,
+          languages: formData.languages,
+          field: formData.field,
+          educationLevel: formData.educationLevel,
+          skills: formData.skills,
+          experienceLevel: formData.experienceLevel,
+          availability: formData.availability,
+          duration: formData.duration,
+          workArrangement: formData.workArrangement,
+          compensation: formData.compensation,
+        },
+      }
+
+      // Register the user with the server, sending the complete profile data
+      const { error, user } = await signUp(completeProfileData)
 
       if (error) {
         setRegistrationError(error)

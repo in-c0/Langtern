@@ -12,6 +12,7 @@ import {
   type AuthResponse,
   type LoginCredentials,
   type RegisterCredentials,
+  type CompleteProfileData,
 } from "@/lib/auth-service"
 
 // Extended AuthResponse to include userType
@@ -23,7 +24,9 @@ type AuthContextType = {
   user: ExtendedAuthResponse | null
   isLoading: boolean
   signIn: (credentials: LoginCredentials) => Promise<{ error: string | null }>
-  signUp: (credentials: RegisterCredentials) => Promise<{ error: string | null; user: ExtendedAuthResponse | null }>
+  signUp: (
+    credentials: RegisterCredentials | CompleteProfileData,
+  ) => Promise<{ error: string | null; user: ExtendedAuthResponse | null }>
   signOut: () => void
   updateUserType: (type: "student" | "business") => void
 }
@@ -61,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
-  const signUp = async (credentials: RegisterCredentials) => {
+  const signUp = async (credentials: RegisterCredentials | CompleteProfileData) => {
     setIsLoading(true)
     const { data, error } = await registerUser(credentials)
 

@@ -119,9 +119,6 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
     }
   })
 
-  // Ensure we have skills array
-  const skills = match.skills || ["Digital Marketing", "Social Media", "Content Creation", "SEO", "Analytics"]
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -130,10 +127,7 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={(e) => {
-            e.stopPropagation()
-            onClose()
-          }}
+          onClick={onClose}
         >
           <motion.div
             className="bg-background rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
@@ -159,10 +153,7 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
                     variant="outline"
                     size="icon"
                     className="h-10 w-10 rounded-full bg-black/20 backdrop-blur-sm border-white/20 text-white hover:bg-black/40"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onClose()
-                    }}
+                    onClick={onClose}
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -173,10 +164,7 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
                     className={`h-10 w-10 rounded-full backdrop-blur-sm border-white/20 text-white hover:bg-black/40 ${
                       isSaved ? "bg-red-500/50" : "bg-black/20"
                     }`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleSave()
-                    }}
+                    onClick={handleSave}
                   >
                     <Heart className={`h-5 w-5 ${isSaved ? "fill-white" : ""}`} />
                   </Button>
@@ -245,7 +233,7 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
                           </CardHeader>
                           <CardContent>
                             <div className="flex flex-wrap gap-2">
-                              {skills.map((skill) => (
+                              {match.skills.map((skill) => (
                                 <Badge key={skill} variant="secondary">
                                   {skill}
                                 </Badge>
@@ -275,27 +263,12 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {match.matchReasons?.map((reason, index) => (
+                            {match.matchReasons.map((reason, index) => (
                               <li key={index} className="flex items-start">
                                 <Star className="h-4 w-4 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
                                 <span>{reason}</span>
                               </li>
-                            )) || (
-                              <>
-                                <li className="flex items-start">
-                                  <Star className="h-4 w-4 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
-                                  <span>You both share an interest in {match.field || "Marketing"}</span>
-                                </li>
-                                <li className="flex items-start">
-                                  <Star className="h-4 w-4 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
-                                  <span>Your language skills in {match.languages[0]} match their requirements</span>
-                                </li>
-                                <li className="flex items-start">
-                                  <Star className="h-4 w-4 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
-                                  <span>Your availability for {match.duration} aligns with their needs</span>
-                                </li>
-                              </>
-                            )}
+                            ))}
                           </ul>
                         </CardContent>
                       </Card>
@@ -557,8 +530,7 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
                     variant="outline"
                     size="lg"
                     className="flex-1 gap-2"
-                    onClick={(e) => {
-                      e.stopPropagation()
+                    onClick={() => {
                       onPass(match)
                       onClose()
                     }}
@@ -568,8 +540,7 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
                   <Button
                     size="lg"
                     className="flex-1 gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                    onClick={(e) => {
-                      e.stopPropagation()
+                    onClick={() => {
                       onMessage(match)
                       onClose()
                     }}

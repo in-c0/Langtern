@@ -120,9 +120,7 @@ export function MatchmakingScreen({ onSelectMatch }) {
         </TabsList>
 
         <TabsContent value="swipe" className="space-y-4">
-          <div className="py-8">
-            <AIMatchmaking onSendMessage={onSelectMatch} />
-          </div>
+          <AIMatchmaking onSendMessage={onSelectMatch} />
         </TabsContent>
 
         <TabsContent value="recommended" className="space-y-4">

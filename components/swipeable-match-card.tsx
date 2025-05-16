@@ -46,27 +46,10 @@ export function SwipeableMatchCard({ match, onSwipeLeft, onSwipeRight, onSendMes
     return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`
   }
 
-  const handleViewDetails = (e) => {
-    e.stopPropagation()
-    setShowDetails(true)
-  }
-
-  const handleCloseDetails = () => {
-    setShowDetails(false)
-  }
-
-  const handleMessage = (matchData) => {
-    if (onSendMessage) {
-      onSendMessage(matchData)
-    } else {
-      onSwipeRight(matchData)
-    }
-  }
-
   return (
     <>
       <motion.div
-        className="relative w-full max-w-md mx-auto"
+        className="absolute w-full"
         style={{ x, rotate, opacity }}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
@@ -74,7 +57,7 @@ export function SwipeableMatchCard({ match, onSwipeLeft, onSwipeRight, onSendMes
         exit={{ x: exitX, opacity: 0, transition: { duration: 0.2 } }}
       >
         <CardContainer className="py-0" containerClassName="py-0">
-          <CardBody className="bg-card relative group/card border-border w-full sm:w-[26rem] min-h-[32rem] h-auto rounded-xl p-0 border overflow-hidden">
+          <CardBody className="bg-card relative group/card border-border w-full sm:w-[26rem] h-[32rem] rounded-xl p-0 border overflow-hidden">
             {/* Background image */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80 z-10" />
 
@@ -141,10 +124,7 @@ export function SwipeableMatchCard({ match, onSwipeLeft, onSwipeRight, onSendMes
                   variant="outline"
                   size="icon"
                   className="h-12 w-12 rounded-full bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onSwipeLeft(match)
-                  }}
+                  onClick={() => onSwipeLeft(match)}
                 >
                   <X className="h-6 w-6 text-white" />
                 </Button>
@@ -153,7 +133,7 @@ export function SwipeableMatchCard({ match, onSwipeLeft, onSwipeRight, onSendMes
                   variant="outline"
                   size="icon"
                   className="h-12 w-12 rounded-full bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/20"
-                  onClick={handleViewDetails}
+                  onClick={() => setShowDetails(true)}
                 >
                   <Info className="h-6 w-6 text-white" />
                 </Button>
@@ -162,10 +142,7 @@ export function SwipeableMatchCard({ match, onSwipeLeft, onSwipeRight, onSendMes
                   variant="outline"
                   size="icon"
                   className="h-12 w-12 rounded-full bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleMessage(match)
-                  }}
+                  onClick={() => (onSendMessage ? onSendMessage(match) : onSwipeRight(match))}
                 >
                   <MessageCircle className="h-6 w-6 text-white" />
                 </Button>
@@ -175,16 +152,13 @@ export function SwipeableMatchCard({ match, onSwipeLeft, onSwipeRight, onSendMes
         </CardContainer>
       </motion.div>
 
-      {/* Render the detail view */}
-      {match && (
-        <MatchProfileDetail
-          match={match}
-          isOpen={showDetails}
-          onClose={handleCloseDetails}
-          onMessage={handleMessage}
-          onPass={onSwipeLeft}
-        />
-      )}
+      <MatchProfileDetail
+        match={match}
+        isOpen={showDetails}
+        onClose={() => setShowDetails(false)}
+        onMessage={onSendMessage || onSwipeRight}
+        onPass={onSwipeLeft}
+      />
     </>
   )
 }

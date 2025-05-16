@@ -1,20 +1,29 @@
+export interface LanguageProficiency {
+  reading: string
+  writing: string
+  speaking: string
+}
+
+export interface LanguageSkill {
+  code: string
+  name: string
+  isLearning: boolean
+  proficiency: LanguageProficiency
+}
+
 export interface UserProfile {
   id: string
   name: string
-  type: string // "student" or "business"
+  type: "student" | "business"
   location: string
-  bio?: string
-  languages: Array<{
-    language: string
-    proficiency: number // 0-100
-    wantToLearn: boolean
-  }>
+  bio: string
+  languages: LanguageSkill[]
   skills: string[]
   field: string
-  availability: string // "Full-time", "Part-time", etc.
-  duration: string // "3 months", "6 months", etc.
-  workArrangement: string // "Remote", "On-site", "Hybrid"
-  compensation?: string // "Paid", "Unpaid", "Stipend"
+  availability: string
+  duration: string
+  workArrangement: string
+  compensation: string
 }
 
 export interface MatchResult {
@@ -23,12 +32,9 @@ export interface MatchResult {
   role: string
   location: string
   languages: string[]
+  skills: string[]
   duration: string
   workArrangement: string
-  compensation?: string
   matchPercentage: number
-  matchReasons?: string[]
-  bio?: string
-  field?: string
-  skills?: string[]
+  matchReasons: string[]
 }

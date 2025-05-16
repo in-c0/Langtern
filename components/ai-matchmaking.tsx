@@ -100,13 +100,13 @@ export function AIMatchmaking({ onSendMessage, userProfile = sampleUserProfile }
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-12rem)] flex flex-col items-center justify-center py-8">
+    <div className="relative h-[calc(100vh-12rem)] flex flex-col items-center justify-center">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold">AI-Powered Matchmaking</h2>
         <p className="text-muted-foreground">Swipe left to pass, right to message</p>
       </div>
 
-      <div className="relative w-full max-w-md h-auto min-h-[32rem]">
+      <div className="relative w-full max-w-md h-[32rem]">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
