@@ -259,12 +259,19 @@ export function MatchmakingScreen({ onSelectMatch }) {
 }
 
 function MatchCard({ match, onSelect }) {
+  const handleSelectMatch = (matchData) => {
+    onSelect(matchData)
+  }
+
   return (
     <motion.div
       whileHover={{ y: -5, boxShadow: "0 10px 30px -15px rgba(0, 0, 0, 0.2)" }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="p-4 border border-border/40 hover:border-blue-500/30 cursor-pointer" onClick={() => onSelect()}>
+      <Card
+        className="p-4 border border-border/40 hover:border-blue-500/30 cursor-pointer"
+        onClick={() => handleSelectMatch(match)}
+      >
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="font-medium">{match.name}</h3>

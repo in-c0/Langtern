@@ -3,13 +3,23 @@
 import { UnifiedMessageCenter } from "@/components/unified-message-center"
 
 interface ChatScreenProps {
+  match?: {
+    name: string
+    profileId: string
+  }
   onProceed?: () => void
 }
 
-export function ChatScreen({ onProceed }: ChatScreenProps) {
+export function ChatScreen({ match, onProceed }: ChatScreenProps) {
   return (
     <div className="w-full">
-      <UnifiedMessageCenter mode="flow" initialConversationId={1} onProceed={onProceed} />
+      <UnifiedMessageCenter
+        recipientName={match?.name || "Chat Partner"}
+        recipientId={match?.profileId}
+        mode="flow"
+        initialConversationId={1}
+        onProceed={onProceed}
+      />
     </div>
   )
 }

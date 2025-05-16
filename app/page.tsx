@@ -42,6 +42,7 @@ export default function LangternApp() {
   const { user, isLoading, signIn } = useAuth()
   const router = useRouter()
   const [isGuestLoggingIn, setIsGuestLoggingIn] = useState(false)
+  const [selectedMatch, setSelectedMatch] = useState(null)
 
   // Check if user is logged in and has completed their profile
   useEffect(() => {
@@ -127,11 +128,16 @@ export default function LangternApp() {
         return (
           <>
             <AIMatchmakingExplainer />
-            <MatchmakingScreen onSelectMatch={() => setCurrentScreen("chat")} />
+            <MatchmakingScreen
+              onSelectMatch={(match) => {
+                setSelectedMatch(match)
+                setCurrentScreen("chat")
+              }}
+            />
           </>
         )
       case "chat":
-        return <ChatScreen onProceed={() => setCurrentScreen("agreement")} />
+        return <ChatScreen match={selectedMatch} onProceed={() => setCurrentScreen("agreement")} />
       case "agreement":
         return <AgreementScreen onComplete={() => setCurrentScreen("dashboard")} />
       case "dashboard":

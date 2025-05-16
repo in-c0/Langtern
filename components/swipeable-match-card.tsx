@@ -6,7 +6,7 @@ import Image from "next/image"
 import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { X, MessageCircle, MapPin, Languages, Briefcase, Clock, Info } from "lucide-react"
+import { X, MessageCircle, MapPin, Languages, Briefcase, Clock, Info, Star } from "lucide-react"
 import type { MatchResult } from "@/types/matching"
 import { MatchProfileDetail } from "@/components/match-profile-detail"
 
@@ -118,6 +118,28 @@ export function SwipeableMatchCard({ match, onSwipeLeft, onSwipeRight, onSendMes
               <CardItem translateZ="20" className="mb-4">
                 <Badge className="bg-blue-500 text-white border-none">{match.matchPercentage}% Match</Badge>
               </CardItem>
+
+              {/* Match reasons */}
+              <div className="mt-2">
+                <h4 className="text-sm font-medium mb-1">Why you match:</h4>
+                <ul className="text-xs text-muted-foreground">
+                  {match.reason ? (
+                    // Use the first reason from the new reason array if available
+                    <li className="flex items-start mb-1">
+                      <Star className="h-3 w-3 mr-1 text-yellow-500 mt-0.5 flex-shrink-0" />
+                      <span>{match.reason[0]}</span>
+                    </li>
+                  ) : match.matchReasons && match.matchReasons.length > 0 ? (
+                    // Fall back to the first matchReason if reason is not available
+                    <li className="flex items-start mb-1">
+                      <Star className="h-3 w-3 mr-1 text-yellow-500 mt-0.5 flex-shrink-0" />
+                      <span>{match.matchReasons[0]}</span>
+                    </li>
+                  ) : (
+                    <li>No matching details available</li>
+                  )}
+                </ul>
+              </div>
 
               <CardItem translateZ="60" className="flex justify-between gap-4">
                 <Button

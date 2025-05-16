@@ -37,4 +37,7 @@ export interface MatchResult {
   workArrangement: string
   matchPercentage: number
   matchReasons: string[]
+  reason?: string[] // New field from server
+  compensation?: string
+  bio?: string
 }

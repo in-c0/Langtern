@@ -231,6 +231,8 @@ interface UnifiedMessageCenterProps {
   initialConversationId?: number
   onProceed?: () => void
   showBackButton?: boolean
+  recipientName?: string
+  recipientId?: string
 }
 
 export function UnifiedMessageCenter({
@@ -238,6 +240,8 @@ export function UnifiedMessageCenter({
   initialConversationId,
   onProceed,
   showBackButton = true,
+  recipientName = "Chat Partner",
+  recipientId = "default-id",
 }: UnifiedMessageCenterProps) {
   const router = useRouter()
   const [conversations, setConversations] = useState<Conversation[]>(sampleConversations)
@@ -248,6 +252,7 @@ export function UnifiedMessageCenter({
   const [showSettings, setShowSettings] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const [recipient, setRecipient] = useState(recipientName)
 
   // Initialize translation settings with default values
   const defaultTranslationSettings = {

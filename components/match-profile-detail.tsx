@@ -263,12 +263,25 @@ export function MatchProfileDetail({ match, isOpen, onClose, onMessage, onPass, 
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {match.matchReasons.map((reason, index) => (
-                              <li key={index} className="flex items-start">
-                                <Star className="h-4 w-4 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
-                                <span>{reason}</span>
-                              </li>
-                            ))}
+                            {match.reason ? (
+                              // Use the new reason array from the server if available
+                              match.reason.map((reason, index) => (
+                                <li key={index} className="flex items-start">
+                                  <Star className="h-4 w-4 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
+                                  <span>{reason}</span>
+                                </li>
+                              ))
+                            ) : match.matchReasons ? (
+                              // Fall back to matchReasons if reason is not available
+                              match.matchReasons.map((reason, index) => (
+                                <li key={index} className="flex items-start">
+                                  <Star className="h-4 w-4 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
+                                  <span>{reason}</span>
+                                </li>
+                              ))
+                            ) : (
+                              <li className="text-muted-foreground">No matching details available</li>
+                            )}
                           </ul>
                         </CardContent>
                       </Card>

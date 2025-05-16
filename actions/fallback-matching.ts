@@ -109,6 +109,10 @@ const fallbackMatches: MatchResult[] = [
       "Perfect match for language learning - you want to learn Japanese and they want to improve English",
       "Remote work arrangement matches your preference",
     ],
+    reason: [
+      "You have Marketing skills which match this job requirement",
+      "Your English proficiency is perfect for this position",
+    ],
   },
   {
     profileId: "3",
@@ -124,6 +128,10 @@ const fallbackMatches: MatchResult[] = [
       "Your Spanish proficiency is a great fit for their language school",
       "Your content creation skills can help with their curriculum development",
       "Part-time availability matches their needs",
+    ],
+    reason: [
+      "You have Teaching skills which match this job requirement",
+      "Your English proficiency is perfect for this position",
     ],
   },
   {
@@ -141,6 +149,10 @@ const fallbackMatches: MatchResult[] = [
       "Opportunity to apply your social media skills in a new market",
       "Flexible work arrangement with both remote and on-site options",
     ],
+    reason: [
+      "You have Social Media skills which match this job requirement",
+      "Your English proficiency is perfect for this position",
+    ],
   },
   {
     profileId: "2",
@@ -157,6 +169,10 @@ const fallbackMatches: MatchResult[] = [
       "Opportunity to learn about web development while applying marketing skills",
       "International experience in a major European tech hub",
     ],
+    reason: [
+      "You have Web Development skills which match this job requirement",
+      "Your English proficiency is perfect for this position",
+    ],
   },
   {
     profileId: "5",
@@ -172,6 +188,10 @@ const fallbackMatches: MatchResult[] = [
       "Remote work arrangement matches your preference",
       "Opportunity to apply marketing skills in market research",
       "Chance to learn about the Korean tech market",
+    ],
+    reason: [
+      "You have Business Development skills which match this job requirement",
+      "Your English proficiency is perfect for this position",
     ],
   },
 ]
@@ -214,6 +234,7 @@ export async function findMatchesFallback(userProfile: UserProfile): Promise<Mat
             "Language requirements align with your abilities",
             "Location preference matches",
           ],
+          reason: result.reason || ["Skills match your profile", "Language requirements align with your abilities"],
         }
       })
     }
