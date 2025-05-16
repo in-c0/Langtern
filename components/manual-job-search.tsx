@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, MapPin, Languages, Code, Briefcase } from "lucide-react"
+import { Search, MapPin, Languages, Code, Briefcase, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { searchJobs } from "@/lib/api-service"
 import type { MatchResult } from "@/types/matching"
 import type { JobResult } from "@/lib/api-service"
@@ -72,6 +73,7 @@ export function ManualJobSearch({ onSelectJob }) {
   const [searchResults, setSearchResults] = useState<MatchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hasSearched, setHasSearched] = useState(false)
 
   const handleAddLanguage = (language: string) => {
     if (language && !selectedLanguages.includes(language)) {
@@ -99,6 +101,7 @@ export function ManualJobSearch({ onSelectJob }) {
     try {
       setLoading(true)
       setError(null)
+      setHasSearched(true)
 
       // Prioritize custom location if it's filled, otherwise use selected location
       const searchValue = customLocation || location
@@ -121,6 +124,12 @@ export function ManualJobSearch({ onSelectJob }) {
         return
       }
 
+      console.log("Searching for jobs with:", {
+        searchValue,
+        languages: selectedLanguages,
+        skills: selectedSkills,
+      })
+
       // Call the API to search for jobs
       const results = await searchJobs({
         searchValue,
@@ -129,6 +138,14 @@ export function ManualJobSearch({ onSelectJob }) {
       })
 
       console.log("Search results:", results)
+
+      // Check if results is empty or undefined
+      if (!results || results.length === 0) {
+        console.log("No results found")
+        setSearchResults([])
+        setLoading(false)
+        return
+      }
 
       // Transform API results to match our MatchResult type
       const formattedResults: MatchResult[] = results.map((job: JobResult) => {
@@ -154,27 +171,31 @@ export function ManualJobSearch({ onSelectJob }) {
         // Ensure matchPercentage is between 0 and 100
         matchPercentage = Math.max(0, Math.min(100, matchPercentage))
 
-        // Generate match reasons
-        const matchReasons = []
-        if (job.matching_score !== undefined) {
-          matchReasons.push(`Matching score: ${(job.matching_score * 100).toFixed(1)}%`)
-        }
+        // Use the new reason field if available, otherwise generate match reasons
+        let matchReasons = job.reason || []
 
-        const skillsMatch = job.skills.filter((skill) =>
-          selectedSkills.some((s) => skill.toLowerCase().includes(s.toLowerCase())),
-        ).length
+        if (!matchReasons || matchReasons.length === 0) {
+          matchReasons = []
+          if (job.matching_score !== undefined) {
+            matchReasons.push(`Matching score: ${(job.matching_score * 100).toFixed(1)}%`)
+          }
 
-        const languagesMatch = job.languages.filter((lang) =>
-          selectedLanguages.some((l) => lang.toLowerCase().includes(l.toLowerCase())),
-        ).length
+          const skillsMatch = job.skills.filter((skill) =>
+            selectedSkills.some((s) => skill.toLowerCase().includes(s.toLowerCase())),
+          ).length
 
-        if (skillsMatch > 0) {
-          matchReasons.push(`Matches ${skillsMatch} of your skills`)
+          const languagesMatch = job.languages.filter((lang) =>
+            selectedLanguages.some((l) => lang.toLowerCase().includes(l.toLowerCase())),
+          ).length
+
+          if (skillsMatch > 0) {
+            matchReasons.push(`Matches ${skillsMatch} of your skills`)
+          }
+          if (languagesMatch > 0) {
+            matchReasons.push(`Matches ${languagesMatch} of your languages`)
+          }
+          matchReasons.push(`Located in ${job.city}`)
         }
-        if (languagesMatch > 0) {
-          matchReasons.push(`Matches ${languagesMatch} of your languages`)
-        }
-        matchReasons.push(`Located in ${job.city}`)
 
         return {
           profileId: String(job.id),
@@ -187,9 +208,10 @@ export function ManualJobSearch({ onSelectJob }) {
           duration: job.availability || "3 months",
           workArrangement: job.workArrangement || "Remote",
           matchPercentage: job.matchPercentage || matchPercentage,
-          matchReasons: job.matchReasons || matchReasons,
+          matchReasons: matchReasons,
           bio: job.bio || "",
           matching_score: job.matching_score, // Store the raw matching score
+          reason: job.reason, // Store the new reason field
         }
       })
 
@@ -350,7 +372,12 @@ export function ManualJobSearch({ onSelectJob }) {
         </Button>
 
         {/* Error Message */}
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
       </div>
 
       {/* Search Results */}
@@ -383,13 +410,17 @@ export function ManualJobSearch({ onSelectJob }) {
             ))
         ) : searchResults.length > 0 ? (
           searchResults.map((job) => <JobCard key={job.profileId} job={job} onSelect={() => onSelectJob(job)} />)
-        ) : (
+        ) : hasSearched ? (
           <div className="text-center py-8">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-3">
               <Search className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground">No jobs found</p>
             <p className="text-xs text-muted-foreground mt-1">Try adjusting your search criteria</p>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Enter your search criteria and click "Search Jobs"</p>
           </div>
         )}
       </div>

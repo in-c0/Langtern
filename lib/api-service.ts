@@ -35,7 +35,8 @@ export interface JobResult {
   role?: string
   matchPercentage?: number
   matchReasons?: string[]
-  matching_score?: number // Add the matching_score field
+  matching_score?: number
+  reason?: string[] // Add the new reason field
 }
 
 export async function searchJobs(params: SearchJobParams): Promise<JobResult[]> {
@@ -51,35 +52,58 @@ export async function searchJobs(params: SearchJobParams): Promise<JobResult[]> 
       cache: "no-store",
     })
 
+    // Log the raw response for debugging
+    console.log("Search API response status:", response.status)
+
     if (!response.ok) {
-      console.error("Search API error:", response.status, await response.text())
-      // Return empty array instead of throwing an error
-      return []
+      console.error("Search API error:", response.status)
+      const errorText = await response.text()
+      console.error("Error response text:", errorText)
+      throw new Error(`API error: ${response.status}`)
     }
 
     // Get the raw text response first
     const rawText = await response.text()
     console.log("Raw API response text:", rawText)
 
+    // If the response is empty, return an empty array
+    if (!rawText || rawText.trim() === "") {
+      console.log("Empty response received from API")
+      return []
+    }
+
     // Try to parse as JSON
     try {
       const data = JSON.parse(rawText)
       console.log("Parsed API response:", data)
 
-      // Handle the nested JSON string in the response field
+      // Handle different response formats
       if (data && typeof data.response === "string") {
         try {
           // Parse the nested JSON string
           const parsedJobs = JSON.parse(data.response.trim())
-          console.log("Parsed jobs:", parsedJobs)
+          console.log("Parsed jobs from nested response:", parsedJobs)
 
           // Return the parsed jobs array
           return Array.isArray(parsedJobs) ? parsedJobs : []
         } catch (parseError) {
           console.error("Error parsing job results:", parseError)
-          // Return empty array instead of throwing an error
+          // Try to handle non-JSON response
+          if (typeof data.response === "string" && data.response.includes("No jobs found")) {
+            console.log("No jobs found message received")
+            return []
+          }
           return []
         }
+      } else if (Array.isArray(data)) {
+        // Direct array response
+        return data
+      } else if (data && Array.isArray(data.jobs)) {
+        // Response with jobs property
+        return data.jobs
+      } else if (data && data.results && Array.isArray(data.results)) {
+        // Response with results property
+        return data.results
       }
 
       // Fallback if the response format is different
@@ -92,7 +116,7 @@ export async function searchJobs(params: SearchJobParams): Promise<JobResult[]> 
     }
   } catch (error) {
     console.error("Error searching jobs:", error)
-    return []
+    throw error
   }
 }
 
